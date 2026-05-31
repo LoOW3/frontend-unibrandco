@@ -34,7 +34,9 @@ function StockFilesDateProvider({ children }: { children: ReactNode }) {
 }
 
 function StockFilesPageContent() {
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dayjs.utc());
+  const maxDate = dayjs.utc().startOf('day');
+  const minDate = maxDate.subtract(7, 'day');
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dayjs.utc().startOf('day'));
 
   const loader = useCallback(
     (withAuth: <T>(fetcher: (idToken: string) => Promise<T>) => Promise<T>) =>
@@ -58,9 +60,12 @@ function StockFilesPageContent() {
       <DatePicker
         label={es.stockFiles.dateLabel}
         value={selectedDate}
+        minDate={minDate}
+        maxDate={maxDate}
+        timezone="UTC"
         onChange={(value) => {
           if (value) {
-            setSelectedDate(value);
+            setSelectedDate(value.utc().startOf('day'));
           }
         }}
         slotProps={{ textField: { size: 'small', fullWidth: true, sx: { maxWidth: { sm: 280 } } } }}
