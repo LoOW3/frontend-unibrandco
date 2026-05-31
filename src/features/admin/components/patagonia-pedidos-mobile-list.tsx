@@ -6,9 +6,11 @@ import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { formatDateTime } from '../../../lib/format';
 import { es } from '../../../i18n/es';
 import type { PatagoniaPedidoListItem } from '../../../types/admin-api';
+import { PatagoniaPedidoStatusLabel } from './patagonia-pedido-status-label';
 
 interface PatagoniaPedidosMobileListProps {
   items: PatagoniaPedidoListItem[];
@@ -45,8 +47,9 @@ export function PatagoniaPedidosMobileList({
                 {item.codigo}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {es.pedidos.tiendanubeOrderId}: {item.tiendanubeOrderId} ·{' '}
-                {es.pedidos.itemCountLabel(item.itemCount)}
+                <TiendanubeBrandText text={es.pedidos.tiendanubeOrderId} />: {item.tiendanubeOrderId}{' '}
+                · {es.pedidos.itemCountLabel(item.itemCount)} · {es.pedidos.status}:{' '}
+                <PatagoniaPedidoStatusLabel status={item.status} />
               </Typography>
               <Typography
                 variant="caption"

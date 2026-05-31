@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { getPatagoniaPedido } from '../../../lib/admin-api-client';
-import type { PatagoniaPedidoRecord } from '../../../types/admin-api';
+import type { PatagoniaPedidoRecordResponse } from '../../../types/admin-api';
 import { useAsyncData } from './use-authenticated-fetch';
 
 export function usePatagoniaPedidoDetail(codigo: string | null) {
@@ -16,5 +16,5 @@ export function usePatagoniaPedidoDetail(codigo: string | null) {
     [codigo],
   );
 
-  return useAsyncData<PatagoniaPedidoRecord | null>(loader, [codigo]);
+  return useAsyncData<PatagoniaPedidoRecordResponse | null>(loader, [codigo]);
 }

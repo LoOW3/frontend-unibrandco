@@ -7,7 +7,7 @@ import {
   type ManualSyncResponse,
   type PaginatedPatagoniaPedidosResponse,
   type PaginatedStockChangesResponse,
-  type PatagoniaPedidoRecord,
+  type PatagoniaPedidoRecordResponse,
   type StockDiffRecord,
   type StockFileDownloadResponse,
   type StockFilesResponse,
@@ -143,9 +143,9 @@ export async function listPatagoniaPedidos(
 export async function getPatagoniaPedido(
   idToken: string,
   codigo: string,
-): Promise<PatagoniaPedidoRecord> {
+): Promise<PatagoniaPedidoRecordResponse> {
   const encoded = encodeURIComponent(codigo);
-  return adminFetch<PatagoniaPedidoRecord>(`/admin/patagonia-pedidos/${encoded}`, idToken);
+  return adminFetch<PatagoniaPedidoRecordResponse>(`/admin/patagonia-pedidos/${encoded}`, idToken);
 }
 
 export function isAdminApiError(error: unknown): error is AdminApiError {
