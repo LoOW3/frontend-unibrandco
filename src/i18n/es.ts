@@ -10,6 +10,8 @@ export const es = {
     subtitle: 'Iniciá sesión con tu cuenta de administrador',
     email: 'Email',
     password: 'Contraseña',
+    showPassword: 'Mostrar contraseña',
+    hidePassword: 'Ocultar contraseña',
     signIn: 'Iniciar sesión',
     signingIn: 'Iniciando sesión...',
     invalidCredentials: 'Email o contraseña incorrectos.',
