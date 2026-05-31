@@ -2,9 +2,13 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import VisibilityIconOutlined from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffIconOutlined from '@mui/icons-material/VisibilityOffOutlined';
 import { type FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
@@ -41,6 +45,7 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -84,7 +89,7 @@ export function LoginPage() {
       <Paper elevation={2} sx={{ p: { xs: 2.5, sm: 4 }, width: '100%', maxWidth: 420 }}>
         <Box
           component="img"
-          src="/assets/unibrandco-logo.webp"
+          src="/assets/unibrandco-logo-black.webp"
           alt="Unibrandco"
           sx={{
             display: 'block',
@@ -117,17 +122,33 @@ export function LoginPage() {
           />
           <TextField
             label={es.auth.password}
-            type="password"
+            type={isPasswordVisible ? 'text' : 'password'}
             autoComplete="current-password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             fullWidth
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={isPasswordVisible ? es.auth.hidePassword : es.auth.showPassword}
+                      edge="end"
+                      onClick={() => setIsPasswordVisible((visible) => !visible)}
+                      onMouseDown={(event) => event.preventDefault()}
+                    >
+                      {isPasswordVisible ? <VisibilityOffIconOutlined /> : <VisibilityIconOutlined />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           {error ? <Alert severity="error">{error}</Alert> : null}
 
-          <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
+          <Button type="submit" variant="contained" size="large" disabled={isSubmitting} loading={isSubmitting}>
             {isSubmitting ? es.auth.signingIn : es.auth.signIn}
           </Button>
         </Box>
