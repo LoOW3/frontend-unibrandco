@@ -71,6 +71,7 @@ export const es = {
   },
   pedidos: {
     title: 'Pedidos',
+    description: 'Pedidos pagados de Tiendanube enviados a DigipWMS',
     reload: 'Recargar pedidos',
     codigo: 'Código',
     tiendanubeOrderId: 'Pedido Tiendanube',
@@ -157,6 +158,8 @@ export const es = {
     previousStock: 'Unidades disponibles en Tiendanube antes de la actualización.',
     newStock: 'Unidades disponibles en Tiendanube después de la actualización.',
     patchedAt: 'Momento en que se completó la actualización de stock en Tiendanube.',
+    pedidosDescription:
+      'Pedidos con pago confirmado en Tiendanube (webhook order/paid) que se transmitieron exitosamente a Patagonia DigipWMS.',
   },
   coraje: {
     copyEmailTooltip: 'Click para copiar email de contacto del desarrollador',
