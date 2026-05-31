@@ -174,7 +174,7 @@ export function AdminLayout() {
             </ListItemButton>
           </List>
           <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'flex-end', p: 1.5 }}>
-            <CorajeButton sx={{ width: 40 }} />
+            <CorajeButton sx={{ width: 40 }} tooltipPlacement="top" />
           </Box>
         </Box>
       </Drawer>

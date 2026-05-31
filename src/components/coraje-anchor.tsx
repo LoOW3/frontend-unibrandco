@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import Tooltip from '@mui/material/Tooltip';
+import Tooltip, { type TooltipProps } from '@mui/material/Tooltip';
 import type { SxProps, Theme } from '@mui/material/styles';
 import { useCallback, useState } from 'react';
 
@@ -9,12 +9,13 @@ const DEVELOPER_CONTACT_EMAIL = 'loow3.exe@gmail.com';
 
 interface CorajeButtonProps {
   sx?: SxProps<Theme>;
+  tooltipPlacement?: TooltipProps['placement'];
 }
 
 /**
  * Clickable Coraje mascot that copies the developer contact email.
  */
-export function CorajeButton({ sx }: CorajeButtonProps) {
+export function CorajeButton({ sx, tooltipPlacement = 'left' }: CorajeButtonProps) {
   const [tooltipTitle, setTooltipTitle] = useState<string>(es.coraje.copyEmailTooltip);
 
   const handleCopyEmail = useCallback(async (): Promise<void> => {
@@ -31,7 +32,7 @@ export function CorajeButton({ sx }: CorajeButtonProps) {
   }, []);
 
   return (
-    <Tooltip title={tooltipTitle} arrow placement="left" onClose={handleTooltipClose}>
+    <Tooltip title={tooltipTitle} arrow placement={tooltipPlacement} onClose={handleTooltipClose}>
       <Box
         component="img"
         src="/assets/coraje.png"
