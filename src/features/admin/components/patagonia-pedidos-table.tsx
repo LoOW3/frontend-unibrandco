@@ -12,10 +12,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 
+import { LabelWithTooltip } from '../../../components/label-with-tooltip';
+import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
 import type { PatagoniaPedidoListItem } from '../../../types/admin-api';
+import { PatagoniaPedidoStatusLabel } from './patagonia-pedido-status-label';
 import { PatagoniaPedidosMobileList } from './patagonia-pedidos-mobile-list';
 
 interface PatagoniaPedidosTableProps {
@@ -70,15 +73,23 @@ export function PatagoniaPedidosTable({
                 <TableHead>
                   <TableRow>
                     <TableCell>{es.pedidos.codigo}</TableCell>
-                    <TableCell align="right">{es.pedidos.tiendanubeOrderId}</TableCell>
+                    <TableCell align="right">
+                      <TiendanubeBrandText text={es.pedidos.tiendanubeOrderId} />
+                    </TableCell>
                     <TableCell align="right">{es.pedidos.itemCount}</TableCell>
+                    <TableCell>
+                      <LabelWithTooltip
+                        label={es.pedidos.status}
+                        tooltip={es.tooltips.pedidosStatus}
+                      />
+                    </TableCell>
                     <TableCell>{es.pedidos.createdAt}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={5}>
                         <Typography variant="body2" color="text.secondary">
                           {es.pedidos.noPedidos}
                         </Typography>
@@ -95,6 +106,9 @@ export function PatagoniaPedidosTable({
                         <TableCell>{item.codigo}</TableCell>
                         <TableCell align="right">{item.tiendanubeOrderId}</TableCell>
                         <TableCell align="right">{item.itemCount}</TableCell>
+                        <TableCell>
+                          <PatagoniaPedidoStatusLabel status={item.status} />
+                        </TableCell>
                         <TableCell>{formatDateTime(item.createdAt)}</TableCell>
                       </TableRow>
                     ))

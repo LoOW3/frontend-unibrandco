@@ -73,9 +73,12 @@ export const es = {
     title: 'Pedidos',
     description: 'Pedidos pagados de Tiendanube enviados a DigipWMS',
     reload: 'Recargar pedidos',
-    codigo: 'Código',
+    codigo: 'Cod. pedido DigipWMS',
     tiendanubeOrderId: 'Pedido Tiendanube',
     itemCount: 'Ítems',
+    status: 'Estado',
+    statusPending: 'Pendiente',
+    statusShipped: 'Despachado',
     createdAt: 'Creado',
     noPedidos: 'No se encontraron pedidos.',
     previousPage: 'Anterior',
@@ -86,10 +89,13 @@ export const es = {
   pedidoDetailDialog: {
     title: 'Detalle del pedido',
     close: 'Cerrar diálogo',
-    codigo: 'Código',
+    codigo: 'Cod. pedido DigipWMS',
     tiendanubeOrderId: 'Pedido Tiendanube',
     createdAt: 'Creado',
     itemCount: 'Cantidad de ítems',
+    status: 'Estado',
+    fulfillmentStatus: 'Estado fulfillment Tiendanube',
+    shippedAt: 'Despachado',
     tiendanubeSummary: 'Resumen Tiendanube',
     customerName: 'Nombre',
     customerEmail: 'Email',
@@ -160,6 +166,8 @@ export const es = {
     patchedAt: 'Momento en que se completó la actualización de stock en Tiendanube.',
     pedidosDescription:
       'Pedidos con pago confirmado en Tiendanube (webhook order/paid) que se transmitieron exitosamente a Patagonia DigipWMS.',
+    pedidosStatus:
+      'Pendiente: enviado a DigipWMS, aún no despachado en Tiendanube. Despachado: Pedido marcado como completado en DigipWMS y despachado en Tiendanube.',
   },
   coraje: {
     copyEmailTooltip: 'Click para copiar email de contacto del desarrollador',
