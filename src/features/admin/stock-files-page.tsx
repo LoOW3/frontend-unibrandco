@@ -1,9 +1,13 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { esES } from '@mui/x-date-pickers/locales';
 import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import 'dayjs/locale/es';
 
 import { listStockFiles } from '../../lib/admin-api-client';
 import type { StockFilesResponse } from '../../types/admin-api';
@@ -17,7 +21,19 @@ function getUtcDateString(value: Dayjs): string {
   return value.utc().format('YYYY-MM-DD');
 }
 
-export function StockFilesPage() {
+function StockFilesDateProvider({ children }: { children: ReactNode }) {
+  return (
+    <LocalizationProvider
+      dateAdapter={AdapterDayjs}
+      adapterLocale="es"
+      localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}
+    >
+      {children}
+    </LocalizationProvider>
+  );
+}
+
+function StockFilesPageContent() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dayjs.utc());
 
   const loader = useCallback(
@@ -31,7 +47,11 @@ export function StockFilesPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' } }}
+      >
         {es.stockFiles.title}
       </Typography>
 
@@ -53,5 +73,13 @@ export function StockFilesPage() {
         isLoading={isLoading}
       />
     </Box>
+  );
+}
+
+export function StockFilesPage() {
+  return (
+    <StockFilesDateProvider>
+      <StockFilesPageContent />
+    </StockFilesDateProvider>
   );
 }

@@ -8,4 +8,24 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes('node_modules/@mui/x-date-pickers') ||
+            id.includes('node_modules/dayjs')
+          ) {
+            return 'vendor-date';
+          }
+          if (id.includes('node_modules/@mui/') || id.includes('node_modules/@emotion/')) {
+            return 'vendor-mui';
+          }
+          if (id.includes('node_modules/aws-amplify')) {
+            return 'vendor-amplify';
+          }
+        },
+      },
+    },
+  },
 })
