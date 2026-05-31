@@ -6,6 +6,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../features/auth/protected-route';
 import {
   ADMIN_DASHBOARD_PATH,
+  ADMIN_PEDIDOS_PATH,
   ADMIN_STOCK_FILES_PATH,
 } from '../layouts/admin-nav-items';
 
@@ -22,6 +23,11 @@ const AdminDashboardPage = lazy(() =>
 );
 const StockFilesPage = lazy(() =>
   import('../features/admin/stock-files-page').then((module) => ({ default: module.StockFilesPage })),
+);
+const PatagoniaPedidosPage = lazy(() =>
+  import('../features/admin/patagonia-pedidos-page').then((module) => ({
+    default: module.PatagoniaPedidosPage,
+  })),
 );
 
 function PageLoader() {
@@ -40,6 +46,7 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
             <Route path={ADMIN_DASHBOARD_PATH} element={<AdminDashboardPage />} />
+            <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />
           </Route>
         </Route>

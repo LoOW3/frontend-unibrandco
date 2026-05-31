@@ -5,13 +5,20 @@ import {
   type AdminDashboardResponse,
   type ApiErrorResponse,
   type ManualSyncResponse,
+  type PaginatedPatagoniaPedidosResponse,
   type PaginatedStockChangesResponse,
+  type PatagoniaPedidoRecord,
   type StockDiffRecord,
   type StockFileDownloadResponse,
   type StockFilesResponse,
 } from '../types/admin-api';
 
 export interface ListStockChangesParams {
+  limit?: number;
+  cursor?: string | null;
+}
+
+export interface ListPatagoniaPedidosParams {
   limit?: number;
   cursor?: string | null;
 }
@@ -111,6 +118,34 @@ export async function getStockFileDownloadUrl(
 export async function downloadStockFile(idToken: string, syncKey: string): Promise<void> {
   const { downloadUrl } = await getStockFileDownloadUrl(idToken, syncKey);
   window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+}
+
+export async function listPatagoniaPedidos(
+  idToken: string,
+  params?: ListPatagoniaPedidosParams,
+): Promise<PaginatedPatagoniaPedidosResponse> {
+  const searchParams = new URLSearchParams();
+
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+
+  if (params?.cursor) {
+    searchParams.set('cursor', params.cursor);
+  }
+
+  const query = searchParams.toString();
+  const path = query ? `/admin/patagonia-pedidos?${query}` : '/admin/patagonia-pedidos';
+
+  return adminFetch<PaginatedPatagoniaPedidosResponse>(path, idToken);
+}
+
+export async function getPatagoniaPedido(
+  idToken: string,
+  codigo: string,
+): Promise<PatagoniaPedidoRecord> {
+  const encoded = encodeURIComponent(codigo);
+  return adminFetch<PatagoniaPedidoRecord>(`/admin/patagonia-pedidos/${encoded}`, idToken);
 }
 
 export function isAdminApiError(error: unknown): error is AdminApiError {

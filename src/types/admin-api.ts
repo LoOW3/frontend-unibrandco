@@ -105,3 +105,61 @@ export class AdminApiError extends Error {
     this.status = status;
   }
 }
+
+export interface OrderUserData {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+export interface OrderProductSummary {
+  id: number;
+  variant_id: string | number;
+  quantity: string | number;
+  sku: string | null;
+}
+
+export interface OrderProductsSummary {
+  id: number;
+  products: OrderProductSummary[];
+  userData: OrderUserData;
+}
+
+export interface PatagoniaCreatePedidoItem {
+  linea: string;
+  articuloCodigo: string;
+  unidades: number;
+}
+
+export interface PatagoniaCreatePedido {
+  codigo: string;
+  clienteUbicacionCodigo: string;
+  fecha: string;
+  estado: 'Pendiente' | 'PendienteGestion';
+  observacion?: string | null;
+  items: PatagoniaCreatePedidoItem[];
+}
+
+export interface PatagoniaPedidoListItem {
+  codigo: string;
+  tiendanubeOrderId: number;
+  createdAt: string;
+  itemCount: number;
+}
+
+export interface PaginatedPatagoniaPedidosResponse {
+  items: PatagoniaPedidoListItem[];
+  nextCursor: string | null;
+}
+
+export interface PatagoniaPedidoRecord {
+  pk: string;
+  recordType: 'patagonia-pedido';
+  createdAt: string;
+  codigo: string;
+  tiendanubeOrderId: number;
+  itemCount: number;
+  summary: OrderProductsSummary;
+  createPedido: PatagoniaCreatePedido;
+}
