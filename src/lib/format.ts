@@ -1,8 +1,7 @@
 export function formatDateTime(value: string): string {
-  return new Intl.DateTimeFormat('es-AR', {
+  return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-    timeZone: 'UTC',
   }).format(new Date(value));
 }
 

@@ -66,7 +66,7 @@ export function CorajeAnchor() {
         position: 'fixed',
         bottom: { md: 16 },
         right: { md: 16 },
-        width: { md: 96 },
+        width: { md: 40 },
         display: { xs: 'none', md: 'block' },
         zIndex: 1200,
       }}
