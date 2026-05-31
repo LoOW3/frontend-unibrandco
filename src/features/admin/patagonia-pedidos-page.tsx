@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
+import { LabelWithTooltip } from '../../components/label-with-tooltip';
 import { es } from '../../i18n/es';
 import { PatagoniaPedidoDetailDialog } from './components/patagonia-pedido-detail-dialog';
 import { PatagoniaPedidosTable } from './components/patagonia-pedidos-table';
@@ -20,29 +21,38 @@ export function PatagoniaPedidosPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-        }}
-      >
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' }, minWidth: 0 }}
+      <Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
         >
-          {es.pedidos.title}
-        </Typography>
-        <IconButton
-          aria-label={es.pedidos.reload}
-          onClick={handleReload}
-          disabled={pedidos.isLoading}
-        >
-          {pedidos.isLoading ? <CircularProgress size={20} /> : <RefreshIcon />}
-        </IconButton>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' }, minWidth: 0 }}
+          >
+            {es.pedidos.title}
+          </Typography>
+          <IconButton
+            aria-label={es.pedidos.reload}
+            onClick={handleReload}
+            disabled={pedidos.isLoading}
+          >
+            {pedidos.isLoading ? <CircularProgress size={20} /> : <RefreshIcon />}
+          </IconButton>
+        </Box>
+        <Box sx={{ mt: 1 }}>
+          <LabelWithTooltip
+            label={es.pedidos.description}
+            tooltip={es.tooltips.pedidosDescription}
+            variant="body2"
+          />
+        </Box>
       </Box>
 
       <PatagoniaPedidosTable
