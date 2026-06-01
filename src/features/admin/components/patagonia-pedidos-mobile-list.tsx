@@ -10,7 +10,9 @@ import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { formatDateTime } from '../../../lib/format';
 import { es } from '../../../i18n/es';
 import type { PatagoniaPedidoListItem } from '../../../types/admin-api';
-import { PatagoniaPedidoStatusLabel } from './patagonia-pedido-status-label';
+import {
+  PatagoniaPedidoStatusLabel,
+} from './patagonia-pedido-status-label';
 
 interface PatagoniaPedidosMobileListProps {
   items: PatagoniaPedidoListItem[];
@@ -48,9 +50,21 @@ export function PatagoniaPedidosMobileList({
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 <TiendanubeBrandText text={es.pedidos.tiendanubeOrderId} />: {item.tiendanubeOrderId}{' '}
-                · {es.pedidos.itemCountLabel(item.itemCount)} · {es.pedidos.status}:{' '}
-                <PatagoniaPedidoStatusLabel status={item.status} />
+                · {es.pedidos.itemCountLabel(item.itemCount)}                 · {es.pedidos.status}:{' '}
+                <PatagoniaPedidoStatusLabel
+                  status={item.status}
+                  fulfillmentStatus={item.fulfillmentStatus}
+                />
               </Typography>
+              {item.shippedAt ? (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 0.5 }}
+                >
+                  {es.pedidos.shippedAt}: {formatDateTime(item.shippedAt)}
+                </Typography>
+              ) : null}
               <Typography
                 variant="caption"
                 color="text.secondary"

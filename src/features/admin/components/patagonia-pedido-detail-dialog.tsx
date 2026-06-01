@@ -21,7 +21,7 @@ import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
 import { usePatagoniaPedidoDetail } from '../hooks/use-patagonia-pedido-detail';
-import { PatagoniaPedidoStatusLabel } from './patagonia-pedido-status-label';
+import { PatagoniaPedidoStatusLabel, formatPatagoniaPedidoFulfillmentStatus } from './patagonia-pedido-status-label';
 
 interface PatagoniaPedidoDetailDialogProps {
   codigo: string | null;
@@ -113,7 +113,10 @@ export function PatagoniaPedidoDetailDialog({
                     {es.pedidoDetailDialog.status}
                   </Typography>
                   <Typography variant="body2">
-                    <PatagoniaPedidoStatusLabel status={data.status} />
+                    <PatagoniaPedidoStatusLabel
+                      status={data.status}
+                      fulfillmentStatus={data.fulfillmentStatus}
+                    />
                   </Typography>
                 </Box>
               </Grid>
@@ -121,7 +124,7 @@ export function PatagoniaPedidoDetailDialog({
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <DetailMetric
                     label={es.pedidoDetailDialog.fulfillmentStatus}
-                    value={data.fulfillmentStatus}
+                    value={formatPatagoniaPedidoFulfillmentStatus(data.fulfillmentStatus)}
                   />
                 </Grid>
               ) : null}

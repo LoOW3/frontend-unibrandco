@@ -83,13 +83,19 @@ export function PatagoniaPedidosTable({
                         tooltip={es.tooltips.pedidosStatus}
                       />
                     </TableCell>
+                    <TableCell>
+                      <LabelWithTooltip
+                        label={es.pedidos.shippedAt}
+                        tooltip={es.tooltips.pedidosShippedAt}
+                      />
+                    </TableCell>
                     <TableCell>{es.pedidos.createdAt}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary">
                           {es.pedidos.noPedidos}
                         </Typography>
@@ -107,7 +113,13 @@ export function PatagoniaPedidosTable({
                         <TableCell align="right">{item.tiendanubeOrderId}</TableCell>
                         <TableCell align="right">{item.itemCount}</TableCell>
                         <TableCell>
-                          <PatagoniaPedidoStatusLabel status={item.status} />
+                          <PatagoniaPedidoStatusLabel
+                            status={item.status}
+                            fulfillmentStatus={item.fulfillmentStatus}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {item.shippedAt ? formatDateTime(item.shippedAt) : '—'}
                         </TableCell>
                         <TableCell>{formatDateTime(item.createdAt)}</TableCell>
                       </TableRow>

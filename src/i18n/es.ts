@@ -78,7 +78,10 @@ export const es = {
     itemCount: 'Ítems',
     status: 'Estado',
     statusPending: 'Pendiente',
-    statusShipped: 'Despachado',
+    statusPacked: 'Empacado',
+    statusDispatchedLegacy: 'Despachado (legacy)',
+    statusShipped: 'Enviado',
+    shippedAt: 'Fulfillment actualizado',
     createdAt: 'Creado',
     noPedidos: 'No se encontraron pedidos.',
     previousPage: 'Anterior',
@@ -95,7 +98,7 @@ export const es = {
     itemCount: 'Cantidad de ítems',
     status: 'Estado',
     fulfillmentStatus: 'Estado fulfillment Tiendanube',
-    shippedAt: 'Despachado',
+    shippedAt: 'Fulfillment actualizado',
     tiendanubeSummary: 'Resumen Tiendanube',
     customerName: 'Nombre',
     customerEmail: 'Email',
@@ -167,7 +170,9 @@ export const es = {
     pedidosDescription:
       'Pedidos con pago confirmado en Tiendanube (webhook order/paid) que se transmitieron exitosamente a Patagonia DigipWMS.',
     pedidosStatus:
-      'Pendiente: enviado a DigipWMS, aún no despachado en Tiendanube. Despachado: Pedido marcado como completado en DigipWMS y despachado en Tiendanube.',
+      'Pendiente: enviado a DigipWMS, fulfillment Tiendanube aún no actualizado. Enviado: fulfillment marcado como PACKED (o DISPATCHED en registros legacy) tras Pedido_Completo.',
+    pedidosShippedAt:
+      'Momento en que se actualizó el fulfillment en Tiendanube después de Pedido_Completo en DigipWMS.',
   },
   coraje: {
     copyEmailTooltip: 'Click para copiar email de contacto del desarrollador',

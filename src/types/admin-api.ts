@@ -143,7 +143,7 @@ export interface PatagoniaCreatePedido {
 
 export type PatagoniaPedidoStatus = 'pending' | 'shipped';
 
-export type PatagoniaPedidoFulfillmentStatus = 'DISPATCHED';
+export type PatagoniaPedidoFulfillmentStatus = 'PACKED' | 'DISPATCHED';
 
 export interface PatagoniaPedidoListItem {
   codigo: string;
