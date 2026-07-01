@@ -3,6 +3,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { CurrentUserProvider } from '../features/auth/current-user-provider';
 import { ProtectedRoute } from '../features/auth/protected-route';
 import {
   ADMIN_DASHBOARD_PATH,
@@ -60,7 +61,13 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
-          <Route element={<AdminLayout />}>
+          <Route
+            element={
+              <CurrentUserProvider>
+                <AdminLayout />
+              </CurrentUserProvider>
+            }
+          >
             <Route path={ADMIN_DASHBOARD_PATH} element={<AdminDashboardPage />} />
             <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />

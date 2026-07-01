@@ -26,6 +26,7 @@ import {
 import type { AdminUser, UserRole } from '../../../types/admin-api';
 import { useAuth } from '../../auth/use-auth';
 import { useAuthenticatedFetch } from '../hooks/use-authenticated-fetch';
+import { roleChipIcon, userStatusIcon } from './chip-visuals';
 
 interface UserDetailDialogProps {
   email: string | null;
@@ -126,16 +127,20 @@ export function UserDetailDialog({ email, open, onClose, onChanged }: UserDetail
         ) : (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 56, height: 56 }}>
-                {(user.name ?? user.email).slice(0, 2).toUpperCase()}
-              </Avatar>
+              <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 56, height: 56 }} />
               <Box>
                 <Typography sx={{ fontWeight: 600 }}>{user.name ?? '—'}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {user.email}
                 </Typography>
               </Box>
-              <Chip size="small" label={statusLabel} sx={{ ml: 'auto' }} />
+              <Chip
+                size="small"
+                variant="outlined"
+                icon={userStatusIcon(user)}
+                label={statusLabel}
+                sx={{ ml: 'auto' }}
+              />
             </Box>
 
             {isSuperAdmin ? (
@@ -171,7 +176,7 @@ export function UserDetailDialog({ email, open, onClose, onChanged }: UserDetail
                 <Typography variant="body2">
                   {es.users.jobRole}: {user.jobRole ?? '—'}
                 </Typography>
-                <Chip size="small" label={es.roles[user.role]} />
+                <Chip size="small" icon={roleChipIcon(user.role)} label={es.roles[user.role]} />
               </>
             )}
           </>

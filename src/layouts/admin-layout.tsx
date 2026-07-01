@@ -18,15 +18,14 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../features/auth/use-auth';
-import { useAuthenticatedFetch } from '../features/admin/hooks/use-authenticated-fetch';
+import { useCurrentUser } from '../features/auth/use-current-user';
 import { CorajeButton } from '../components/coraje-anchor';
 import { useIsMobile } from '../hooks/use-is-mobile';
 import { es } from '../i18n/es';
-import { getMe } from '../lib/admin-api-client';
 import {
   ADMIN_DASHBOARD_PATH,
   ADMIN_PROFILE_PATH,
@@ -34,46 +33,16 @@ import {
   adminNavItems,
 } from './admin-nav-items';
 
-function initials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email?.trim() || '';
-  if (!source) {
-    return '?';
-  }
-  const parts = source.split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return source.slice(0, 2).toUpperCase();
-}
-
 export function AdminLayout() {
   const { signOut, name, email } = useAuth();
-  const { withAuth } = useAuthenticatedFetch();
+  const { user } = useCurrentUser();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string | null>(name);
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const me = await withAuth((idToken) => getMe(idToken));
-        if (!cancelled) {
-          setAvatarUrl(me.avatarUrl);
-          setDisplayName(me.name ?? me.email);
-        }
-      } catch {
-        // Non-fatal: fall back to the token's name/email.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [withAuth]);
+  const avatarUrl = user?.avatarUrl ?? null;
 
   const handleSignOut = async (): Promise<void> => {
     await signOut();
@@ -89,12 +58,8 @@ export function AdminLayout() {
     navigate(path);
   };
 
-  const label = displayName ?? name ?? email ?? '';
-  const avatar = (
-    <Avatar src={avatarUrl ?? undefined} sx={{ width: 32, height: 32, fontSize: '0.8rem' }}>
-      {initials(displayName ?? name, email)}
-    </Avatar>
-  );
+  const label = user?.name ?? user?.email ?? name ?? email ?? '';
+  const avatar = <Avatar src={avatarUrl ?? undefined} sx={{ width: 32, height: 32 }} />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -170,7 +135,7 @@ export function AdminLayout() {
         </Toolbar>
       </AppBar>
 
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu}>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu} disableScrollLock>
         <MenuItem disabled sx={{ opacity: '1 !important' }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {label}

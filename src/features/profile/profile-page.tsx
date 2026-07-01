@@ -12,55 +12,28 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useRef, useState } from 'react';
 
 import { es } from '../../i18n/es';
-import { getMe, updateMe, uploadAvatar } from '../../lib/admin-api-client';
-import type { AdminUser } from '../../types/admin-api';
+import { updateMe, uploadAvatar } from '../../lib/admin-api-client';
 import { useAuthenticatedFetch } from '../admin/hooks/use-authenticated-fetch';
-
-function initials(user: AdminUser | null): string {
-  const source = user?.name?.trim() || user?.email?.trim() || '';
-  const parts = source.split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return source.slice(0, 2).toUpperCase() || '?';
-}
+import { useCurrentUser } from '../auth/use-current-user';
+import { roleChipIcon } from '../admin/components/chip-visuals';
 
 export function ProfilePage() {
   const { withAuth } = useAuthenticatedFetch();
+  const { user, setUser, error: loadError } = useCurrentUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [user, setUser] = useState<AdminUser | null>(null);
   const [name, setName] = useState('');
   const [jobRole, setJobRole] = useState('');
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const applyUser = (value: AdminUser): void => {
-    setUser(value);
-    setName(value.name ?? '');
-    setJobRole(value.jobRole ?? '');
-  };
-
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const me = await withAuth((idToken) => getMe(idToken));
-        if (!cancelled) {
-          applyUser(me);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setLoadError(error instanceof Error ? error.message : es.dashboard.requestFailed);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [withAuth]);
+    if (user) {
+      setName(user.name ?? '');
+      setJobRole(user.jobRole ?? '');
+    }
+  }, [user]);
 
   const handleSave = async (): Promise<void> => {
     setIsSaving(true);
@@ -69,7 +42,7 @@ export function ProfilePage() {
       const updated = await withAuth((idToken) =>
         updateMe(idToken, { name: name.trim(), jobRole: jobRole.trim() }),
       );
-      applyUser(updated);
+      setUser(updated);
       setFeedback({ type: 'success', text: es.profile.saved });
     } catch (error) {
       setFeedback({
@@ -87,7 +60,7 @@ export function ProfilePage() {
     try {
       const key = await withAuth((idToken) => uploadAvatar(idToken, file));
       const updated = await withAuth((idToken) => updateMe(idToken, { avatarKey: key }));
-      applyUser(updated);
+      setUser(updated);
       setFeedback({ type: 'success', text: es.profile.saved });
     } catch (error) {
       setFeedback({
@@ -120,9 +93,7 @@ export function ProfilePage() {
       <Card variant="outlined">
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, p: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 72, height: 72 }}>
-              {initials(user)}
-            </Avatar>
+            <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 72, height: 72 }} />
             <Button
               variant="outlined"
               startIcon={
@@ -179,6 +150,7 @@ export function ProfilePage() {
             <Chip
               size="small"
               color={user.role === 'SUPER_ADMIN' ? 'secondary' : 'default'}
+              icon={roleChipIcon(user.role)}
               label={es.roles[user.role]}
             />
           </Box>

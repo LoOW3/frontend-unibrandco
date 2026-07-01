@@ -1,3 +1,8 @@
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import BlockIcon from '@mui/icons-material/Block';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -10,7 +15,7 @@ import StepIcon, { type StepIconProps } from '@mui/material/StepIcon';
 import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
-import { useState, type ElementType, type ReactNode } from 'react';
+import { useState, type ElementType, type ReactElement, type ReactNode } from 'react';
 
 import { ActorBadge } from './actor-badge';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
@@ -30,18 +35,23 @@ type ChipColor = 'default' | 'info' | 'success' | 'error' | 'warning';
 export function manualSyncStatusChip(status: ManualSyncStatus): {
   label: string;
   color: ChipColor;
+  icon: ReactElement;
 } {
   switch (status) {
     case 'RUNNING':
-      return { label: es.manualSync.statusRunning, color: 'info' };
+      return { label: es.manualSync.statusRunning, color: 'info', icon: <AutorenewIcon /> };
     case 'COMPLETED':
-      return { label: es.manualSync.statusCompleted, color: 'success' };
+      return {
+        label: es.manualSync.statusCompleted,
+        color: 'success',
+        icon: <CheckCircleOutlineIcon />,
+      };
     case 'FAILED':
-      return { label: es.manualSync.statusFailed, color: 'error' };
+      return { label: es.manualSync.statusFailed, color: 'error', icon: <ErrorOutlineIcon /> };
     case 'ABORTED':
-      return { label: es.manualSync.statusAborted, color: 'warning' };
+      return { label: es.manualSync.statusAborted, color: 'warning', icon: <BlockIcon /> };
     default:
-      return { label: es.manualSync.statusPending, color: 'default' };
+      return { label: es.manualSync.statusPending, color: 'default', icon: <HourglassEmptyIcon /> };
   }
 }
 
@@ -176,7 +186,7 @@ export function ManualSyncRunDetail({
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
           {manifest.runId}
         </Typography>
-        <Chip size="small" color={chip.color} label={chip.label} />
+        <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
         {manifest.dryRun ? (
           <Chip size="small" variant="outlined" label={es.manualSync.dryRunTag} />
         ) : null}

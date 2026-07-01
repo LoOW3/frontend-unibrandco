@@ -25,6 +25,7 @@ import { es } from '../../i18n/es';
 import { inviteUser, listUsers } from '../../lib/admin-api-client';
 import type { AdminUser, UsersListResponse } from '../../types/admin-api';
 import { UserDetailDialog } from './components/user-detail-dialog';
+import { roleChipIcon, userStatusIcon } from './components/chip-visuals';
 import { useAsyncData, useAuthenticatedFetch } from './hooks/use-authenticated-fetch';
 
 function statusLabel(user: AdminUser): string {
@@ -178,11 +179,8 @@ export function UsersPage() {
                       onClick={() => setDetailEmail(user.email)}
                     >
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                            {(user.name ?? user.email).slice(0, 2).toUpperCase()}
-                          </Avatar>
-                          {user.name ?? '—'}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>``
+                          <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 28, height: 28, fontSize: '0.75rem' }} />
                         </Box>
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
@@ -191,10 +189,18 @@ export function UsersPage() {
                         <Chip
                           size="small"
                           color={user.role === 'SUPER_ADMIN' ? 'secondary' : 'default'}
+                          icon={roleChipIcon(user.role)}
                           label={es.roles[user.role]}
                         />
                       </TableCell>
-                      <TableCell>{statusLabel(user)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          icon={userStatusIcon(user)}
+                          label={statusLabel(user)}
+                        />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

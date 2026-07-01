@@ -103,7 +103,7 @@ export function ManualSyncRunsTable({
                       }}
                     >
                       <Typography variant="subtitle2">{runLabel(run.runId)}</Typography>
-                      <Chip size="small" color={chip.color} label={chip.label} />
+                      <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
                     </Box>
                     <Typography variant="caption" color="text.secondary">
                       {formatDateTime(run.startedAt)} · {live.progress}%
@@ -150,7 +150,7 @@ export function ManualSyncRunsTable({
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        <Chip size="small" color={chip.color} label={chip.label} />
+                        <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
                       </TableCell>
                       <TableCell>{formatDateTime(run.startedAt)}</TableCell>
                       <TableCell>

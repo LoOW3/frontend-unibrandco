@@ -38,9 +38,7 @@ export function ActorBadge({ email, size = 24 }: ActorBadgeProps) {
       <Avatar
         src={user?.avatarUrl ?? undefined}
         sx={{ width: size, height: size, fontSize: `${size * 0.42}px` }}
-      >
-        {label.slice(0, 2).toUpperCase()}
-      </Avatar>
+      />
       <Typography variant="body2">{label}</Typography>
     </Box>
   );
