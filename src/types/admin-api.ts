@@ -92,11 +92,13 @@ export interface ManualSyncResponse {
   syncedAt: string;
 }
 
-export type ManualSyncStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type ManualSyncStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'ABORTED';
 
 export interface ManualSyncCounts {
   patagoniaItems?: number;
   tnProducts?: number;
+  tnPagesFetched?: number;
+  tnPagesTotal?: number;
   matched?: number;
   skipped?: number;
   patched?: number;

@@ -185,6 +185,13 @@ export async function getManualSyncRun(
   return adminFetch<ManualSyncManifest>(buildManualSyncRunPath(runId), idToken);
 }
 
+export async function abortManualSyncRun(idToken: string, runId: string): Promise<void> {
+  await adminFetch<{ runId: string; aborting: boolean }>('/admin/manual-sync/abort', idToken, {
+    method: 'POST',
+    body: JSON.stringify({ runId }),
+  });
+}
+
 export function isAdminApiError(error: unknown): error is AdminApiError {
   return error instanceof AdminApiError;
 }

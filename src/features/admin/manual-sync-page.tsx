@@ -5,6 +5,11 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
@@ -17,14 +22,18 @@ import utc from 'dayjs/plugin/utc';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import 'dayjs/locale/es';
 
+import { TiendanubeBrandText } from '../../components/tiendanube-brand';
 import { es } from '../../i18n/es';
 import {
+  abortManualSyncRun,
   getManualSyncRun,
+  isAdminApiError,
   listManualSyncRuns,
   triggerManualSyncRun,
 } from '../../lib/admin-api-client';
 import type { ManualSyncManifest, ManualSyncRunsResponse } from '../../types/admin-api';
 import { ManualSyncRunDetail } from './components/manual-sync-run-detail';
+import { ManualSyncRunDetailDialog } from './components/manual-sync-run-detail-dialog';
 import { ManualSyncRunsTable } from './components/manual-sync-runs-table';
 import { useAsyncData, useAuthenticatedFetch } from './hooks/use-authenticated-fetch';
 
@@ -48,6 +57,10 @@ function ManualSyncDateProvider({ children }: { children: ReactNode }) {
   );
 }
 
+function isActiveStatus(status: string): boolean {
+  return status === 'RUNNING' || status === 'PENDING';
+}
+
 function ManualSyncPageContent() {
   const { withAuth } = useAuthenticatedFetch();
 
@@ -55,13 +68,19 @@ function ManualSyncPageContent() {
   const minDate = maxDate.subtract(30, 'day');
   const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dayjs.utc().startOf('day'));
 
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const [manifest, setManifest] = useState<ManualSyncManifest | null>(null);
-  const [manifestError, setManifestError] = useState<string | null>(null);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [activeManifest, setActiveManifest] = useState<ManualSyncManifest | null>(null);
+  const [activeError, setActiveError] = useState<string | null>(null);
+  const finishedRunRef = useRef<string | null>(null);
+
+  const [dialogRunId, setDialogRunId] = useState<string | null>(null);
 
   const [dryRun, setDryRun] = useState(false);
   const [isTriggering, setIsTriggering] = useState(false);
   const [triggerError, setTriggerError] = useState<string | null>(null);
+
+  const [isAborting, setIsAborting] = useState(false);
+  const [abortConfirmOpen, setAbortConfirmOpen] = useState(false);
 
   const runsLoader = useCallback(
     (auth: <T>(fetcher: (idToken: string) => Promise<T>) => Promise<T>) =>
@@ -70,17 +89,27 @@ function ManualSyncPageContent() {
   );
   const runs = useAsyncData<ManualSyncRunsResponse>(runsLoader, [selectedDate]);
 
-  // Keep a stable ref to reload so the polling effect need not depend on it.
   const reloadRunsRef = useRef(runs.reload);
   reloadRunsRef.current = runs.reload;
 
   const dateLabel = useMemo(() => getUtcDateString(selectedDate), [selectedDate]);
 
-  // Poll the selected run's manifest while it is still running.
+  // Pick up an in-progress run from the list (e.g. after a page refresh mid-run).
   useEffect(() => {
-    if (!selectedRunId) {
-      setManifest(null);
-      setManifestError(null);
+    if (activeRunId) {
+      return;
+    }
+    const running = runs.data?.runs.find((run) => isActiveStatus(run.status));
+    if (running && running.runId !== finishedRunRef.current) {
+      setActiveRunId(running.runId);
+    }
+  }, [runs.data, activeRunId]);
+
+  // Poll the active run's manifest until it reaches a terminal state.
+  useEffect(() => {
+    if (!activeRunId) {
+      setActiveManifest(null);
+      setActiveError(null);
       return;
     }
 
@@ -89,21 +118,25 @@ function ManualSyncPageContent() {
 
     const poll = async (): Promise<void> => {
       try {
-        const result = await withAuth((idToken) => getManualSyncRun(idToken, selectedRunId));
+        const result = await withAuth((idToken) => getManualSyncRun(idToken, activeRunId));
         if (cancelled) {
           return;
         }
-        setManifest(result);
-        setManifestError(null);
+        setActiveError(null);
 
-        if (result.status === 'RUNNING' || result.status === 'PENDING') {
+        if (isActiveStatus(result.status)) {
+          setActiveManifest(result);
           timer = setTimeout(() => void poll(), POLL_INTERVAL_MS);
         } else {
+          // Terminal: drop the inline card and refresh the list to show the final row.
+          finishedRunRef.current = activeRunId;
+          setActiveManifest(null);
+          setActiveRunId(null);
           reloadRunsRef.current();
         }
       } catch (error) {
         if (!cancelled) {
-          setManifestError(error instanceof Error ? error.message : es.dashboard.requestFailed);
+          setActiveError(error instanceof Error ? error.message : es.dashboard.requestFailed);
         }
       }
     };
@@ -116,21 +149,56 @@ function ManualSyncPageContent() {
         clearTimeout(timer);
       }
     };
-  }, [selectedRunId, withAuth]);
+  }, [activeRunId, withAuth]);
 
   const handleTrigger = async (): Promise<void> => {
     setIsTriggering(true);
     setTriggerError(null);
     try {
       const result = await withAuth((idToken) => triggerManualSyncRun(idToken, dryRun));
-      setSelectedRunId(result.runId);
+      finishedRunRef.current = null;
+      setActiveRunId(result.runId);
       reloadRunsRef.current();
     } catch (error) {
-      setTriggerError(error instanceof Error ? error.message : es.manualSync.triggerFailed);
+      if (isAdminApiError(error) && error.status === 409) {
+        setTriggerError(es.manualSync.alreadyRunning);
+        reloadRunsRef.current();
+      } else {
+        setTriggerError(error instanceof Error ? error.message : es.manualSync.triggerFailed);
+      }
     } finally {
       setIsTriggering(false);
     }
   };
+
+  const doAbort = async (): Promise<void> => {
+    if (!activeRunId) {
+      return;
+    }
+    setIsAborting(true);
+    try {
+      await withAuth((idToken) => abortManualSyncRun(idToken, activeRunId));
+      setAbortConfirmOpen(false);
+      // Status flips to ABORTED via polling; keep the button spinner until then.
+    } catch (error) {
+      setActiveError(error instanceof Error ? error.message : es.dashboard.requestFailed);
+      setAbortConfirmOpen(false);
+    } finally {
+      setIsAborting(false);
+    }
+  };
+
+  const handleAbortClick = (): void => {
+    // Steps 1–5 mutate nothing → abort straight away. Step 6 (send-patch) is
+    // already updating Tiendanube → confirm first.
+    if (activeManifest?.currentStep === 'send-patch') {
+      setAbortConfirmOpen(true);
+    } else {
+      void doAbort();
+    }
+  };
+
+  const runActive = Boolean(activeRunId);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -143,7 +211,7 @@ function ManualSyncPageContent() {
           {es.manualSync.title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {es.manualSync.description}
+          <TiendanubeBrandText text={es.manualSync.description} />
         </Typography>
       </Box>
 
@@ -160,16 +228,27 @@ function ManualSyncPageContent() {
             <Button
               variant="contained"
               startIcon={isTriggering ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
-              disabled={isTriggering}
+              disabled={isTriggering || runActive}
               onClick={() => void handleTrigger()}
             >
               {isTriggering ? es.manualSync.triggering : es.manualSync.trigger}
             </Button>
             <FormControlLabel
-              control={<Switch checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />}
+              control={
+                <Switch
+                  checked={dryRun}
+                  disabled={runActive}
+                  onChange={(event) => setDryRun(event.target.checked)}
+                />
+              }
               label={es.manualSync.dryRun}
             />
           </Box>
+          {runActive ? (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              {es.manualSync.alreadyRunning}
+            </Alert>
+          ) : null}
           {triggerError ? (
             <Alert severity="error" sx={{ mt: 2 }} onClose={() => setTriggerError(null)}>
               {triggerError}
@@ -178,19 +257,23 @@ function ManualSyncPageContent() {
         </CardContent>
       </Card>
 
-      {selectedRunId ? (
+      {activeRunId ? (
         <Card variant="outlined">
           <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
             <Typography variant="h6" gutterBottom>
-              {es.manualSync.liveDetail}
+              {es.manualSync.activeRunTitle}
             </Typography>
-            {manifestError ? (
+            {activeError ? (
               <Alert severity="error" sx={{ mb: 2 }}>
-                {manifestError}
+                {activeError}
               </Alert>
             ) : null}
-            {manifest ? (
-              <ManualSyncRunDetail manifest={manifest} />
+            {activeManifest ? (
+              <ManualSyncRunDetail
+                manifest={activeManifest}
+                onAbort={handleAbortClick}
+                aborting={isAborting}
+              />
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress size={28} />
@@ -217,11 +300,41 @@ function ManualSyncPageContent() {
       <ManualSyncRunsTable
         runs={runs.data?.runs ?? []}
         date={dateLabel}
-        selectedRunId={selectedRunId}
-        onSelect={setSelectedRunId}
+        selectedRunId={activeRunId}
+        onSelect={setDialogRunId}
         error={runs.error}
         isLoading={runs.isLoading}
+        liveManifest={activeManifest}
       />
+
+      <ManualSyncRunDetailDialog
+        runId={dialogRunId}
+        open={Boolean(dialogRunId)}
+        onClose={() => setDialogRunId(null)}
+      />
+
+      <Dialog open={abortConfirmOpen} onClose={() => setAbortConfirmOpen(false)}>
+        <DialogTitle>{es.manualSync.abortConfirmTitle}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <TiendanubeBrandText text={es.manualSync.abortConfirmBody} />
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAbortConfirmOpen(false)} disabled={isAborting}>
+            {es.manualSync.cancel}
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => void doAbort()}
+            disabled={isAborting}
+            startIcon={isAborting ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {isAborting ? es.manualSync.aborting : es.manualSync.abortConfirm}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
