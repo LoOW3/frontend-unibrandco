@@ -92,6 +92,74 @@ export interface ManualSyncResponse {
   syncedAt: string;
 }
 
+export type ManualSyncStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface ManualSyncCounts {
+  patagoniaItems?: number;
+  tnProducts?: number;
+  matched?: number;
+  skipped?: number;
+  patched?: number;
+  sendChunksTotal?: number;
+  sendChunksSent?: number;
+}
+
+export interface ManualSyncStep {
+  key: string;
+  label: string;
+  status: ManualSyncStatus;
+  startedAt?: string;
+  completedAt?: string;
+  result?: Record<string, unknown>;
+  error?: string;
+}
+
+export interface ManualSyncArtifact {
+  label: string;
+  s3Key: string;
+  sizeBytes: number;
+}
+
+export interface ManualSyncManifest {
+  runId: string;
+  runPrefix: string;
+  startedAt: string;
+  completedAt: string | null;
+  status: ManualSyncStatus;
+  triggeredBy: string | null;
+  executionArn: string | null;
+  dryRun: boolean;
+  currentStep: string | null;
+  progress: number;
+  steps: ManualSyncStep[];
+  artifacts: ManualSyncArtifact[];
+  counts: ManualSyncCounts;
+  error: string | null;
+}
+
+export interface ManualSyncRunSummary {
+  runId: string;
+  status: ManualSyncStatus;
+  startedAt: string;
+  completedAt: string | null;
+  progress: number;
+  currentStep: string | null;
+  triggeredBy: string | null;
+  dryRun: boolean;
+  counts: ManualSyncCounts;
+  error: string | null;
+}
+
+export interface ManualSyncRunsResponse {
+  date: string;
+  runs: ManualSyncRunSummary[];
+}
+
+export interface ManualSyncTriggerResponse {
+  runId: string;
+  executionArn: string;
+}
+
 export interface ApiErrorResponse {
   message?: string;
 }

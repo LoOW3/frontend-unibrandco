@@ -6,6 +6,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../features/auth/protected-route';
 import {
   ADMIN_DASHBOARD_PATH,
+  ADMIN_MANUAL_SYNC_PATH,
   ADMIN_PEDIDOS_PATH,
   ADMIN_STOCK_FILES_PATH,
 } from '../layouts/admin-nav-items';
@@ -29,6 +30,11 @@ const PatagoniaPedidosPage = lazy(() =>
     default: module.PatagoniaPedidosPage,
   })),
 );
+const ManualSyncPage = lazy(() =>
+  import('../features/admin/manual-sync-page').then((module) => ({
+    default: module.ManualSyncPage,
+  })),
+);
 
 function PageLoader() {
   return (
@@ -48,6 +54,7 @@ export function AppRouter() {
             <Route path={ADMIN_DASHBOARD_PATH} element={<AdminDashboardPage />} />
             <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />
+            <Route path={ADMIN_MANUAL_SYNC_PATH} element={<ManualSyncPage />} />
           </Route>
         </Route>
         <Route path="/admins" element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />

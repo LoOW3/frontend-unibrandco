@@ -4,7 +4,10 @@ import {
   AdminApiError,
   type AdminDashboardResponse,
   type ApiErrorResponse,
+  type ManualSyncManifest,
   type ManualSyncResponse,
+  type ManualSyncRunsResponse,
+  type ManualSyncTriggerResponse,
   type PaginatedPatagoniaPedidosResponse,
   type PaginatedStockChangesResponse,
   type PatagoniaPedidoRecordResponse,
@@ -146,6 +149,40 @@ export async function getPatagoniaPedido(
 ): Promise<PatagoniaPedidoRecordResponse> {
   const encoded = encodeURIComponent(codigo);
   return adminFetch<PatagoniaPedidoRecordResponse>(`/admin/patagonia-pedidos/${encoded}`, idToken);
+}
+
+/** Builds the manual-sync run detail path preserving slash segments in runId. */
+export function buildManualSyncRunPath(runId: string): string {
+  const segments = runId.split('/').map(encodeURIComponent).join('/');
+  return `/admin/manual-sync/runs/${segments}`;
+}
+
+export async function triggerManualSyncRun(
+  idToken: string,
+  dryRun = false,
+): Promise<ManualSyncTriggerResponse> {
+  return adminFetch<ManualSyncTriggerResponse>('/admin/manual-sync/trigger', idToken, {
+    method: 'POST',
+    body: JSON.stringify({ dryRun }),
+  });
+}
+
+export async function listManualSyncRuns(
+  idToken: string,
+  date: string,
+): Promise<ManualSyncRunsResponse> {
+  const searchParams = new URLSearchParams({ date });
+  return adminFetch<ManualSyncRunsResponse>(
+    `/admin/manual-sync/runs?${searchParams.toString()}`,
+    idToken,
+  );
+}
+
+export async function getManualSyncRun(
+  idToken: string,
+  runId: string,
+): Promise<ManualSyncManifest> {
+  return adminFetch<ManualSyncManifest>(buildManualSyncRunPath(runId), idToken);
 }
 
 export function isAdminApiError(error: unknown): error is AdminApiError {
