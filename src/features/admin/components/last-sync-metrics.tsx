@@ -19,6 +19,7 @@ import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
 import type { AdminDashboardResponse, TiendanubePatchedItem } from '../../../types/admin-api';
+import { ActorBadge } from './actor-badge';
 
 interface LastSyncMetricsProps {
   data: AdminDashboardResponse | null;
@@ -144,6 +145,14 @@ export function LastSyncMetrics({ data, error, isLoading }: LastSyncMetricsProps
               tooltip={es.tooltips.patchedSkus}
               value={lastSync.patchedCount}
             />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="caption" color="text.secondary">
+              {es.manualSync.triggeredBy}
+            </Typography>
+            <Box sx={{ mt: 0.5 }}>
+              <ActorBadge email={lastSync.triggeredBy ?? null} />
+            </Box>
           </Grid>
         </Grid>
 

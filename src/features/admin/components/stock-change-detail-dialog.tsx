@@ -22,6 +22,7 @@ import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
 import { useStockChangeDetail } from '../hooks/use-stock-change-detail';
+import { ActorBadge } from './actor-badge';
 
 interface StockChangeDetailDialogProps {
   syncKey: string | null;
@@ -130,6 +131,14 @@ export function StockChangeDetailDialog({
                   label={es.detailDialog.createdAt}
                   value={formatDateTime(data.createdAt)}
                 />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {es.manualSync.triggeredBy}
+                </Typography>
+                <Box sx={{ mt: 0.5 }}>
+                  <ActorBadge email={data.triggeredBy ?? null} />
+                </Box>
               </Grid>
             </Grid>
 

@@ -13,26 +13,41 @@ import {
 
 import { AuthContext, type AuthContextValue } from './auth-context';
 
-function parseGroupsFromToken(idToken: string): string[] {
+interface TokenClaims {
+  email: string | null;
+  name: string | null;
+  groups: string[];
+}
+
+function parseClaims(idToken: string): TokenClaims {
   try {
     const payload = idToken.split('.')[1];
     if (!payload) {
-      return [];
+      return { email: null, name: null, groups: [] };
     }
 
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
+      email?: string;
+      name?: string;
       'cognito:groups'?: string[];
     };
 
-    return decoded['cognito:groups'] ?? [];
+    return {
+      email: decoded.email ?? null,
+      name: decoded.name ?? null,
+      groups: decoded['cognito:groups'] ?? [],
+    };
   } catch {
-    return [];
+    return { email: null, name: null, groups: [] };
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSession = useCallback(async (): Promise<string | null> => {
@@ -40,7 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const idToken = session.tokens?.idToken?.toString() ?? null;
 
     setIsAuthenticated(Boolean(idToken));
-    setIsAdmin(idToken ? parseGroupsFromToken(idToken).includes('ADMIN') : false);
+
+    if (idToken) {
+      const claims = parseClaims(idToken);
+      setEmail(claims.email);
+      setName(claims.name);
+      setIsAdmin(claims.groups.includes('ADMIN') || claims.groups.includes('SUPER_ADMIN'));
+      setIsSuperAdmin(claims.groups.includes('SUPER_ADMIN'));
+    } else {
+      setEmail(null);
+      setName(null);
+      setIsAdmin(false);
+      setIsSuperAdmin(false);
+    }
 
     return idToken;
   }, []);
@@ -56,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshSession]);
 
   const signIn = useCallback(
-    async (email: string, password: string): Promise<void> => {
-      await amplifySignIn({ username: email, password });
+    async (emailInput: string, password: string): Promise<void> => {
+      await amplifySignIn({ username: emailInput, password });
       await refreshSession();
     },
     [refreshSession],
@@ -67,6 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await amplifySignOut();
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setIsSuperAdmin(false);
+    setEmail(null);
+    setName(null);
   }, []);
 
   const getIdToken = useCallback(async (): Promise<string | null> => {
@@ -78,11 +108,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isLoading,
       isAdmin,
+      isSuperAdmin,
+      email,
+      name,
       signIn,
       signOut,
       getIdToken,
     }),
-    [getIdToken, isAdmin, isAuthenticated, isLoading, signIn, signOut],
+    [email, getIdToken, isAdmin, isAuthenticated, isLoading, isSuperAdmin, name, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

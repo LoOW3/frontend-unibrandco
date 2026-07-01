@@ -1,35 +1,63 @@
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import BlockIcon from '@mui/icons-material/Block';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import LinearProgress from '@mui/material/LinearProgress';
 import Step from '@mui/material/Step';
+import StepIcon, { type StepIconProps } from '@mui/material/StepIcon';
 import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useState, type ElementType, type ReactElement, type ReactNode } from 'react';
 
+import { ActorBadge } from './actor-badge';
+import { LabelWithTooltip } from '../../../components/label-with-tooltip';
+import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime, formatFileSize } from '../../../lib/format';
-import type { ManualSyncManifest, ManualSyncStatus } from '../../../types/admin-api';
+import type {
+  ManualSyncManifest,
+  ManualSyncStatus,
+  ManualSyncStep,
+} from '../../../types/admin-api';
 import { StockFileDownloadButton } from './stock-file-download-button';
 
-type ChipColor = 'default' | 'info' | 'success' | 'error';
+type ChipColor = 'default' | 'info' | 'success' | 'error' | 'warning';
 
 export function manualSyncStatusChip(status: ManualSyncStatus): {
   label: string;
   color: ChipColor;
+  icon: ReactElement;
 } {
   switch (status) {
     case 'RUNNING':
-      return { label: es.manualSync.statusRunning, color: 'info' };
+      return { label: es.manualSync.statusRunning, color: 'info', icon: <AutorenewIcon /> };
     case 'COMPLETED':
-      return { label: es.manualSync.statusCompleted, color: 'success' };
+      return {
+        label: es.manualSync.statusCompleted,
+        color: 'success',
+        icon: <CheckCircleOutlineIcon />,
+      };
     case 'FAILED':
-      return { label: es.manualSync.statusFailed, color: 'error' };
+      return { label: es.manualSync.statusFailed, color: 'error', icon: <ErrorOutlineIcon /> };
+    case 'ABORTED':
+      return { label: es.manualSync.statusAborted, color: 'warning', icon: <BlockIcon /> };
     default:
-      return { label: es.manualSync.statusPending, color: 'default' };
+      return { label: es.manualSync.statusPending, color: 'default', icon: <HourglassEmptyIcon /> };
   }
+}
+
+/** Localized step label (with inline Tiendanube logo), falling back to manifest. */
+function stepLabelText(step: ManualSyncStep): string {
+  return es.manualSync.stepLabels[step.key] ?? step.label;
 }
 
 /** Index of the first step that is not COMPLETED (or the count if all done). */
@@ -40,9 +68,9 @@ function activeStepIndex(manifest: ManualSyncManifest): number {
 
 function CountsRow({ manifest }: { manifest: ManualSyncManifest }) {
   const { counts } = manifest;
-  const entries: Array<[string, number | undefined]> = [
+  const entries: Array<[ReactNode, number | undefined]> = [
     [es.manualSync.countPatagonia, counts.patagoniaItems],
-    [es.manualSync.countTnProducts, counts.tnProducts],
+    [<TiendanubeBrandText key="tn" text={es.manualSync.countTnProducts} />, counts.tnProducts],
     [es.manualSync.countMatched, counts.matched],
     [es.manualSync.countSkipped, counts.skipped],
     [es.manualSync.countPatched, counts.patched],
@@ -52,9 +80,77 @@ function CountsRow({ manifest }: { manifest: ManualSyncManifest }) {
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
       {entries
         .filter(([, value]) => value !== undefined)
-        .map(([label, value]) => (
-          <Chip key={label} size="small" variant="outlined" label={`${label}: ${value}`} />
+        .map(([label, value], index) => (
+          <Chip
+            key={index}
+            size="small"
+            variant="outlined"
+            label={
+              <>
+                {label}: {value}
+              </>
+            }
+          />
         ))}
+    </Box>
+  );
+}
+
+/**
+ * Sub-progress percentage for a step that reports it (fetch pages / send chunks),
+ * or null when the step has no fine-grained progress.
+ */
+function stepProgressPct(step: ManualSyncStep, manifest: ManualSyncManifest): number | null {
+  const { counts } = manifest;
+
+  if (step.key === 'fetch-tiendanube' && counts.tnPagesTotal) {
+    return Math.round(((counts.tnPagesFetched ?? 0) / counts.tnPagesTotal) * 100);
+  }
+  if (step.key === 'send-patch' && counts.sendChunksTotal) {
+    return Math.round(((counts.sendChunksSent ?? 0) / counts.sendChunksTotal) * 100);
+  }
+  return null;
+}
+
+/**
+ * Step icon: for a RUNNING step with sub-progress, a determinate circular
+ * progress with a small percentage label below; otherwise the default icon.
+ */
+function StepProgressIcon({
+  step,
+  manifest,
+  ...iconProps
+}: StepIconProps & { step: ManualSyncStep; manifest: ManualSyncManifest }) {
+  const pct = step.status === 'RUNNING' ? stepProgressPct(step, manifest) : null;
+
+  if (pct === null) {
+    return <StepIcon {...iconProps} />;
+  }
+
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <CircularProgress variant="determinate" value={pct} size={24} thickness={4} />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          mt: '2px',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', lineHeight: 1 }}>
+          {pct}%
+        </Typography>
+      </Box>
     </Box>
   );
 }
@@ -62,13 +158,22 @@ function CountsRow({ manifest }: { manifest: ManualSyncManifest }) {
 interface ManualSyncRunDetailProps {
   manifest: ManualSyncManifest;
   onDownloadError?: (message: string) => void;
+  /** When provided and the run is RUNNING, shows an "Abortar" button. */
+  onAbort?: () => void;
+  aborting?: boolean;
 }
 
-export function ManualSyncRunDetail({ manifest, onDownloadError }: ManualSyncRunDetailProps) {
+export function ManualSyncRunDetail({
+  manifest,
+  onDownloadError,
+  onAbort,
+  aborting,
+}: ManualSyncRunDetailProps) {
   const isMobile = useIsMobile();
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const chip = manualSyncStatusChip(manifest.status);
   const active = activeStepIndex(manifest);
+  const currentStep = manifest.steps.find((step) => step.key === manifest.currentStep);
 
   const handleDownloadError = (message: string) => {
     setDownloadError(message);
@@ -81,9 +186,24 @@ export function ManualSyncRunDetail({ manifest, onDownloadError }: ManualSyncRun
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
           {manifest.runId}
         </Typography>
-        <Chip size="small" color={chip.color} label={chip.label} />
+        <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
         {manifest.dryRun ? (
           <Chip size="small" variant="outlined" label={es.manualSync.dryRunTag} />
+        ) : null}
+        {onAbort && manifest.status === 'RUNNING' ? (
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            startIcon={
+              aborting ? <CircularProgress size={14} color="inherit" /> : <StopCircleOutlinedIcon />
+            }
+            disabled={aborting}
+            onClick={onAbort}
+            sx={{ ml: 'auto' }}
+          >
+            {aborting ? es.manualSync.aborting : es.manualSync.abort}
+          </Button>
         ) : null}
       </Box>
 
@@ -95,12 +215,7 @@ export function ManualSyncRunDetail({ manifest, onDownloadError }: ManualSyncRun
         />
         <Typography variant="caption" color="text.secondary">
           {manifest.progress}%
-          {manifest.currentStep
-            ? ` — ${es.manualSync.currentStep(
-                manifest.steps.find((step) => step.key === manifest.currentStep)?.label ??
-                  manifest.currentStep,
-              )}`
-            : ''}
+          {currentStep ? ` — ${es.manualSync.currentStep(stepLabelText(currentStep))}` : ''}
         </Typography>
       </Box>
 
@@ -118,7 +233,22 @@ export function ManualSyncRunDetail({ manifest, onDownloadError }: ManualSyncRun
       >
         {manifest.steps.map((step) => (
           <Step key={step.key} completed={step.status === 'COMPLETED'}>
-            <StepLabel error={step.status === 'FAILED'}>{step.label}</StepLabel>
+            <StepLabel
+              error={step.status === 'FAILED'}
+              slots={{
+                stepIcon: ((iconProps: StepIconProps) => (
+                  <StepProgressIcon {...iconProps} step={step} manifest={manifest} />
+                )) as ElementType,
+              }}
+            >
+              <LabelWithTooltip
+                label={stepLabelText(step)}
+                tooltip={es.manualSync.stepDescriptions[step.key] ?? ''}
+                variant="body2"
+                align={isMobile ? 'left' : 'center'}
+                color="text.primary"
+              />
+            </StepLabel>
           </Step>
         ))}
       </Stepper>
@@ -155,12 +285,18 @@ export function ManualSyncRunDetail({ manifest, onDownloadError }: ManualSyncRun
         )}
       </Box>
 
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Typography variant="caption" color="text.secondary">
+          {es.manualSync.triggeredBy}:
+        </Typography>
+        <ActorBadge email={manifest.triggeredBy} />
+      </Box>
+
       <Typography variant="caption" color="text.secondary">
         {es.manualSync.startedAt}: {formatDateTime(manifest.startedAt)}
         {manifest.completedAt
           ? ` · ${es.manualSync.completedAt}: ${formatDateTime(manifest.completedAt)}`
           : ''}
-        {manifest.triggeredBy ? ` · ${es.manualSync.triggeredBy}: ${manifest.triggeredBy}` : ''}
       </Typography>
     </Box>
   );

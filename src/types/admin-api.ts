@@ -22,6 +22,7 @@ export interface AdminDashboardResponse {
     syncedAt: string;
     patchedAt: string;
     patchedCount: number;
+    triggeredBy?: string | null;
     patchedItems: TiendanubePatchedItem[];
   } | null;
 }
@@ -33,6 +34,7 @@ export interface StockChangeSummary {
   previousSyncKey: string;
   changedCount: number;
   createdAt: string;
+  triggeredBy?: string | null;
   tiendanubeSync?: TiendanubeSyncSummary;
 }
 
@@ -83,7 +85,33 @@ export interface StockDiffRecord {
   changedItems: StockChangeItem[];
   changedCount: number;
   createdAt: string;
+  triggeredBy?: string | null;
   tiendanubeSync?: TiendanubeSyncResult;
+}
+
+export type UserRole = 'ADMIN' | 'SUPER_ADMIN';
+
+export interface AdminUser {
+  email: string;
+  sub: string | null;
+  name: string | null;
+  jobRole: string | null;
+  avatarKey: string | null;
+  avatarUrl: string | null;
+  role: UserRole;
+  groups: string[];
+  enabled: boolean;
+  status: string;
+  createdAt: string | null;
+}
+
+export interface UsersListResponse {
+  users: AdminUser[];
+}
+
+export interface AvatarUploadUrlResponse {
+  uploadUrl: string;
+  key: string;
 }
 
 export interface ManualSyncResponse {
@@ -92,11 +120,13 @@ export interface ManualSyncResponse {
   syncedAt: string;
 }
 
-export type ManualSyncStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type ManualSyncStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'ABORTED';
 
 export interface ManualSyncCounts {
   patagoniaItems?: number;
   tnProducts?: number;
+  tnPagesFetched?: number;
+  tnPagesTotal?: number;
   matched?: number;
   skipped?: number;
   patched?: number;

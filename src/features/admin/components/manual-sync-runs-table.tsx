@@ -17,7 +17,12 @@ import Typography from '@mui/material/Typography';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
-import type { ManualSyncRunSummary } from '../../../types/admin-api';
+import type {
+  ManualSyncManifest,
+  ManualSyncRunSummary,
+  ManualSyncStatus,
+} from '../../../types/admin-api';
+import { ActorBadge } from './actor-badge';
 import { manualSyncStatusChip } from './manual-sync-run-detail';
 
 /** Returns the run-N label from a runId like manual-sync/2026/07/01/run-3. */
@@ -32,6 +37,8 @@ interface ManualSyncRunsTableProps {
   onSelect: (runId: string) => void;
   error: string | null;
   isLoading: boolean;
+  /** Live manifest of the active run; overrides its row's status/progress. */
+  liveManifest?: ManualSyncManifest | null;
 }
 
 export function ManualSyncRunsTable({
@@ -41,8 +48,17 @@ export function ManualSyncRunsTable({
   onSelect,
   error,
   isLoading,
+  liveManifest,
 }: ManualSyncRunsTableProps) {
   const isMobile = useIsMobile();
+
+  /** Live status/progress for a row when it matches the polled active run. */
+  const liveFor = (
+    run: ManualSyncRunSummary,
+  ): { status: ManualSyncStatus; progress: number } =>
+    liveManifest && liveManifest.runId === run.runId
+      ? { status: liveManifest.status, progress: liveManifest.progress }
+      : { status: run.status, progress: run.progress };
 
   return (
     <Card variant="outlined">
@@ -68,7 +84,8 @@ export function ManualSyncRunsTable({
         ) : isMobile ? (
           <Stack spacing={1}>
             {runs.map((run) => {
-              const chip = manualSyncStatusChip(run.status);
+              const live = liveFor(run);
+              const chip = manualSyncStatusChip(live.status);
               return (
                 <Card
                   key={run.runId}
@@ -86,10 +103,10 @@ export function ManualSyncRunsTable({
                       }}
                     >
                       <Typography variant="subtitle2">{runLabel(run.runId)}</Typography>
-                      <Chip size="small" color={chip.color} label={chip.label} />
+                      <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
                     </Box>
                     <Typography variant="caption" color="text.secondary">
-                      {formatDateTime(run.startedAt)} · {run.progress}%
+                      {formatDateTime(run.startedAt)} · {live.progress}%
                     </Typography>
                   </CardActionArea>
                 </Card>
@@ -104,13 +121,15 @@ export function ManualSyncRunsTable({
                   <TableCell>{es.manualSync.run}</TableCell>
                   <TableCell>{es.manualSync.status}</TableCell>
                   <TableCell>{es.manualSync.startedAt}</TableCell>
+                  <TableCell>{es.manualSync.triggeredBy}</TableCell>
                   <TableCell align="right">{es.manualSync.progress}</TableCell>
                   <TableCell align="right">{es.manualSync.countPatched}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {runs.map((run) => {
-                  const chip = manualSyncStatusChip(run.status);
+                  const live = liveFor(run);
+                  const chip = manualSyncStatusChip(live.status);
                   return (
                     <TableRow
                       key={run.runId}
@@ -131,10 +150,13 @@ export function ManualSyncRunsTable({
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        <Chip size="small" color={chip.color} label={chip.label} />
+                        <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
                       </TableCell>
                       <TableCell>{formatDateTime(run.startedAt)}</TableCell>
-                      <TableCell align="right">{run.progress}%</TableCell>
+                      <TableCell>
+                        <ActorBadge email={run.triggeredBy} />
+                      </TableCell>
+                      <TableCell align="right">{live.progress}%</TableCell>
                       <TableCell align="right">{run.counts.patched ?? '—'}</TableCell>
                     </TableRow>
                   );

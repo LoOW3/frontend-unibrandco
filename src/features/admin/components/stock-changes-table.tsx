@@ -18,6 +18,7 @@ import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
 import type { StockChangeSummary } from '../../../types/admin-api';
+import { ActorBadge } from './actor-badge';
 import { StockChangesMobileList } from './stock-changes-mobile-list';
 import { StockFileDownloadButton } from './stock-file-download-button';
 
@@ -95,13 +96,14 @@ export function StockChangesTable({
                       />
                     </TableCell>
                     <TableCell>{es.stockChanges.createdAt}</TableCell>
+                    <TableCell>{es.manualSync.triggeredBy}</TableCell>
                     <TableCell align="center">{es.stockChanges.download}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary">
                           {es.stockChanges.noChanges}
                         </Typography>
@@ -121,6 +123,9 @@ export function StockChangesTable({
                           {item.tiendanubeSync?.patchedCount ?? '—'}
                         </TableCell>
                         <TableCell>{formatDateTime(item.createdAt)}</TableCell>
+                        <TableCell>
+                          <ActorBadge email={item.triggeredBy ?? null} />
+                        </TableCell>
                         <TableCell align="center" onClick={(event) => event.stopPropagation()}>
                           <StockFileDownloadButton
                             syncKey={item.currentSyncKey}
