@@ -135,7 +135,14 @@ export function AdminLayout() {
         </Toolbar>
       </AppBar>
 
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu} disableScrollLock>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        disableScrollLock
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
         <MenuItem disabled sx={{ opacity: '1 !important' }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {label}

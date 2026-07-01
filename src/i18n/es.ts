@@ -79,6 +79,13 @@ export const es = {
     signInFailed: 'No se pudo iniciar sesión. Intentá de nuevo.',
     notAdmin: 'Tu cuenta no pertenece al grupo ADMIN. Contactá a un administrador.',
     sessionExpired: 'La sesión expiró',
+    newPasswordTitle: 'Definí tu contraseña',
+    newPasswordSubtitle: 'Es tu primer ingreso. Elegí una contraseña nueva.',
+    newPassword: 'Contraseña nueva',
+    confirmPassword: 'Confirmar contraseña',
+    setPassword: 'Guardar contraseña',
+    settingPassword: 'Guardando...',
+    passwordsDontMatch: 'Las contraseñas no coinciden.',
   },
   dashboard: {
     title: 'Panel',

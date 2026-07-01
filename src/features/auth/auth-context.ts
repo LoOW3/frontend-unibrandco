@@ -7,7 +7,8 @@ export interface AuthContextValue {
   isSuperAdmin: boolean;
   email: string | null;
   name: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ requiresNewPassword: boolean }>;
+  completeNewPassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }

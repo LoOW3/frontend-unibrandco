@@ -179,8 +179,9 @@ export function UsersPage() {
                       onClick={() => setDetailEmail(user.email)}
                     >
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>``
-                          <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 28, height: 28, fontSize: '0.75rem' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 28, height: 28 }} />
+                          {user.name ?? '—'}
                         </Box>
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
