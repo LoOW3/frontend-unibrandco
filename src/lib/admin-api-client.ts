@@ -3,7 +3,11 @@ import { es } from '../i18n/es';
 import {
   AdminApiError,
   type AdminDashboardResponse,
+  type AdminUser,
   type ApiErrorResponse,
+  type AvatarUploadUrlResponse,
+  type UserRole,
+  type UsersListResponse,
   type ManualSyncManifest,
   type ManualSyncResponse,
   type ManualSyncRunsResponse,
@@ -190,6 +194,92 @@ export async function abortManualSyncRun(idToken: string, runId: string): Promis
     method: 'POST',
     body: JSON.stringify({ runId }),
   });
+}
+
+// --- User management ---
+
+function userPath(email: string): string {
+  return `/admin/users/${encodeURIComponent(email)}`;
+}
+
+export async function getMe(idToken: string): Promise<AdminUser> {
+  return adminFetch<AdminUser>('/admin/users/me', idToken);
+}
+
+export async function updateMe(
+  idToken: string,
+  input: { name?: string | null; jobRole?: string | null; avatarKey?: string | null },
+): Promise<AdminUser> {
+  return adminFetch<AdminUser>('/admin/users/me', idToken, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listUsers(idToken: string): Promise<UsersListResponse> {
+  return adminFetch<UsersListResponse>('/admin/users', idToken);
+}
+
+export async function getUser(idToken: string, email: string): Promise<AdminUser> {
+  return adminFetch<AdminUser>(userPath(email), idToken);
+}
+
+export async function inviteUser(
+  idToken: string,
+  input: { email: string; name?: string; jobRole?: string },
+): Promise<AdminUser> {
+  return adminFetch<AdminUser>('/admin/users/invite', idToken, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateUser(
+  idToken: string,
+  email: string,
+  input: { name?: string | null; jobRole?: string | null; role?: UserRole },
+): Promise<AdminUser> {
+  return adminFetch<AdminUser>(userPath(email), idToken, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function setUserEnabled(
+  idToken: string,
+  email: string,
+  enabled: boolean,
+): Promise<AdminUser> {
+  return adminFetch<AdminUser>(`${userPath(email)}/${enabled ? 'enable' : 'disable'}`, idToken, {
+    method: 'POST',
+  });
+}
+
+export async function deleteUser(idToken: string, email: string): Promise<void> {
+  await adminFetch<{ email: string; deleted: boolean }>(userPath(email), idToken, {
+    method: 'DELETE',
+  });
+}
+
+/** Requests a presigned PUT, uploads the file to S3, and returns the avatar key. */
+export async function uploadAvatar(idToken: string, file: File): Promise<string> {
+  const { uploadUrl, key } = await adminFetch<AvatarUploadUrlResponse>(
+    '/admin/users/me/avatar-url',
+    idToken,
+    { method: 'POST', body: JSON.stringify({ contentType: file.type || 'image/jpeg' }) },
+  );
+
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'image/jpeg' },
+    body: file,
+  });
+
+  if (!response.ok) {
+    throw new AdminApiError(response.status, es.dashboard.requestFailed);
+  }
+
+  return key;
 }
 
 export function isAdminApiError(error: unknown): error is AdminApiError {

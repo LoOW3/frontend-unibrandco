@@ -8,7 +8,9 @@ import {
   ADMIN_DASHBOARD_PATH,
   ADMIN_MANUAL_SYNC_PATH,
   ADMIN_PEDIDOS_PATH,
+  ADMIN_PROFILE_PATH,
   ADMIN_STOCK_FILES_PATH,
+  ADMIN_USERS_PATH,
 } from '../layouts/admin-nav-items';
 
 const LoginPage = lazy(() =>
@@ -35,6 +37,14 @@ const ManualSyncPage = lazy(() =>
     default: module.ManualSyncPage,
   })),
 );
+const ProfilePage = lazy(() =>
+  import('../features/profile/profile-page').then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
+const UsersPage = lazy(() =>
+  import('../features/admin/users-page').then((module) => ({ default: module.UsersPage })),
+);
 
 function PageLoader() {
   return (
@@ -55,6 +65,8 @@ export function AppRouter() {
             <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />
             <Route path={ADMIN_MANUAL_SYNC_PATH} element={<ManualSyncPage />} />
+            <Route path={ADMIN_PROFILE_PATH} element={<ProfilePage />} />
+            <Route path={ADMIN_USERS_PATH} element={<UsersPage />} />
           </Route>
         </Route>
         <Route path="/admins" element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />

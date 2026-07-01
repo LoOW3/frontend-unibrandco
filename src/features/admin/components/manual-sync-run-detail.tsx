@@ -12,6 +12,7 @@ import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
 import { useState, type ElementType, type ReactNode } from 'react';
 
+import { ActorBadge } from './actor-badge';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
@@ -274,12 +275,18 @@ export function ManualSyncRunDetail({
         )}
       </Box>
 
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Typography variant="caption" color="text.secondary">
+          {es.manualSync.triggeredBy}:
+        </Typography>
+        <ActorBadge email={manifest.triggeredBy} />
+      </Box>
+
       <Typography variant="caption" color="text.secondary">
         {es.manualSync.startedAt}: {formatDateTime(manifest.startedAt)}
         {manifest.completedAt
           ? ` · ${es.manualSync.completedAt}: ${formatDateTime(manifest.completedAt)}`
           : ''}
-        {manifest.triggeredBy ? ` · ${es.manualSync.triggeredBy}: ${manifest.triggeredBy}` : ''}
       </Typography>
     </Box>
   );

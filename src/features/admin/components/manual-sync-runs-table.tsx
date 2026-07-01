@@ -22,6 +22,7 @@ import type {
   ManualSyncRunSummary,
   ManualSyncStatus,
 } from '../../../types/admin-api';
+import { ActorBadge } from './actor-badge';
 import { manualSyncStatusChip } from './manual-sync-run-detail';
 
 /** Returns the run-N label from a runId like manual-sync/2026/07/01/run-3. */
@@ -120,6 +121,7 @@ export function ManualSyncRunsTable({
                   <TableCell>{es.manualSync.run}</TableCell>
                   <TableCell>{es.manualSync.status}</TableCell>
                   <TableCell>{es.manualSync.startedAt}</TableCell>
+                  <TableCell>{es.manualSync.triggeredBy}</TableCell>
                   <TableCell align="right">{es.manualSync.progress}</TableCell>
                   <TableCell align="right">{es.manualSync.countPatched}</TableCell>
                 </TableRow>
@@ -151,6 +153,9 @@ export function ManualSyncRunsTable({
                         <Chip size="small" color={chip.color} label={chip.label} />
                       </TableCell>
                       <TableCell>{formatDateTime(run.startedAt)}</TableCell>
+                      <TableCell>
+                        <ActorBadge email={run.triggeredBy} />
+                      </TableCell>
                       <TableCell align="right">{live.progress}%</TableCell>
                       <TableCell align="right">{run.counts.patched ?? '—'}</TableCell>
                     </TableRow>

@@ -10,6 +10,8 @@ export const ADMIN_DASHBOARD_PATH = '/admin/dashboard';
 export const ADMIN_STOCK_FILES_PATH = '/admin/stock-files';
 export const ADMIN_PEDIDOS_PATH = '/admin/pedidos';
 export const ADMIN_MANUAL_SYNC_PATH = '/admin/manual-sync';
+export const ADMIN_PROFILE_PATH = '/admin/profile';
+export const ADMIN_USERS_PATH = '/admin/users';
 
 export interface AdminNavItem {
   label: string;
