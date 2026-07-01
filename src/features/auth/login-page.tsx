@@ -35,7 +35,7 @@ function getLoginErrorMessage(error: unknown): string {
 }
 
 export function LoginPage() {
-  const { isAuthenticated, isLoading, signIn } = useAuth();
+  const { isAuthenticated, isLoading, signIn, completeNewPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo =
@@ -48,6 +48,9 @@ export function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsNewPassword, setNeedsNewPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   if (isLoading) {
     return (
@@ -67,7 +70,31 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signIn(email.trim(), password);
+      const { requiresNewPassword } = await signIn(email.trim(), password);
+      if (requiresNewPassword) {
+        setNeedsNewPassword(true);
+        return;
+      }
+      navigate(redirectTo, { replace: true });
+    } catch (submitError) {
+      setError(getLoginErrorMessage(submitError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSetPassword = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    setError(null);
+
+    if (newPassword !== confirmPassword) {
+      setError(es.auth.passwordsDontMatch);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await completeNewPassword(newPassword);
       navigate(redirectTo, { replace: true });
     } catch (submitError) {
       setError(getLoginErrorMessage(submitError));
@@ -100,12 +127,60 @@ export function LoginPage() {
           }}
         />
         <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 600, textAlign: 'center' }}>
-          {es.auth.title}
+          {needsNewPassword ? es.auth.newPasswordTitle : es.auth.title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-          {es.auth.subtitle}
+          {needsNewPassword ? es.auth.newPasswordSubtitle : es.auth.subtitle}
         </Typography>
 
+        {needsNewPassword ? (
+          <Box
+            component="form"
+            onSubmit={handleSetPassword}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
+            <TextField
+              label={es.auth.newPassword}
+              type={isPasswordVisible ? 'text' : 'password'}
+              autoComplete="new-password"
+              required
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              fullWidth
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label={isPasswordVisible ? es.auth.hidePassword : es.auth.showPassword}
+                        edge="end"
+                        onClick={() => setIsPasswordVisible((visible) => !visible)}
+                        onMouseDown={(event) => event.preventDefault()}
+                      >
+                        {isPasswordVisible ? <VisibilityOffIconOutlined /> : <VisibilityIconOutlined />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <TextField
+              label={es.auth.confirmPassword}
+              type={isPasswordVisible ? 'text' : 'password'}
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              fullWidth
+            />
+
+            {error ? <Alert severity="error">{error}</Alert> : null}
+
+            <Button type="submit" variant="contained" size="large" disabled={isSubmitting} loading={isSubmitting}>
+              {isSubmitting ? es.auth.settingPassword : es.auth.setPassword}
+            </Button>
+          </Box>
+        ) : (
         <Box
           component="form"
           onSubmit={handleSubmit}
@@ -152,6 +227,7 @@ export function LoginPage() {
             {isSubmitting ? es.auth.signingIn : es.auth.signIn}
           </Button>
         </Box>
+        )}
       </Paper>
     </Box>
   );

@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  confirmSignIn as amplifyConfirmSignIn,
   fetchAuthSession,
   signIn as amplifySignIn,
   signOut as amplifySignOut,
@@ -83,9 +84,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshSession]);
 
   const signIn = useCallback(
-    async (emailInput: string, password: string): Promise<void> => {
-      await amplifySignIn({ username: emailInput, password });
+    async (emailInput: string, password: string): Promise<{ requiresNewPassword: boolean }> => {
+      const { nextStep } = await amplifySignIn({ username: emailInput, password });
+      if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+        return { requiresNewPassword: true };
+      }
       await refreshSession();
+      return { requiresNewPassword: false };
+    },
+    [refreshSession],
+  );
+
+  const completeNewPassword = useCallback(
+    async (newPassword: string): Promise<void> => {
+      const { isSignedIn } = await amplifyConfirmSignIn({ challengeResponse: newPassword });
+      if (isSignedIn) {
+        await refreshSession();
+      }
     },
     [refreshSession],
   );
@@ -112,10 +127,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       name,
       signIn,
+      completeNewPassword,
       signOut,
       getIdToken,
     }),
-    [email, getIdToken, isAdmin, isAuthenticated, isLoading, isSuperAdmin, name, signIn, signOut],
+    [
+      completeNewPassword,
+      email,
+      getIdToken,
+      isAdmin,
+      isAuthenticated,
+      isLoading,
+      isSuperAdmin,
+      name,
+      signIn,
+      signOut,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
