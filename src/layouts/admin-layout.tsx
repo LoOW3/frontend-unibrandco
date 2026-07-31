@@ -1,31 +1,25 @@
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import LogoutIcon from '@mui/icons-material/Logout';
-import MenuIcon from '@mui/icons-material/Menu';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutlined';
-import AppBar from '@mui/material/AppBar';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
-import Drawer from '@mui/material/Drawer';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
+import { LogOut, Menu as MenuIcon, Moon, Sun, User, Users } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
-import { useAuth } from '../features/auth/use-auth';
-import { useCurrentUser } from '../features/auth/use-current-user';
-import { CorajeButton } from '../components/coraje-anchor';
-import { useIsMobile } from '../hooks/use-is-mobile';
-import { es } from '../i18n/es';
+import { CorajeButton } from '@/components/coraje-anchor';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/features/auth/use-auth';
+import { useCurrentUser } from '@/features/auth/use-current-user';
+import { useTheme } from '@/features/theme/use-theme';
+import { cn } from '@/lib/cn';
+import { es } from '@/i18n/es';
 import {
   ADMIN_DASHBOARD_PATH,
   ADMIN_PROFILE_PATH,
@@ -34,220 +28,173 @@ import {
 } from './admin-nav-items';
 
 export function AdminLayout() {
-  const { signOut, name, email } = useAuth();
+  const { signOut, email } = useAuth();
   const { user } = useCurrentUser();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const avatarUrl = user?.avatarUrl ?? null;
+  const label = user?.name ?? user?.email ?? email ?? '';
 
   const handleSignOut = async (): Promise<void> => {
     await signOut();
     navigate('/login', { replace: true });
   };
 
-  const closeDrawer = (): void => setIsDrawerOpen(false);
-  const closeMenu = (): void => setMenuAnchor(null);
+  const avatar = (
+    <Avatar className="size-8">{user?.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}</Avatar>
+  );
 
-  const goTo = (path: string): void => {
-    closeMenu();
-    closeDrawer();
-    navigate(path);
-  };
-
-  const label = user?.name ?? user?.email ?? name ?? email ?? '';
-  const avatar = <Avatar src={avatarUrl ?? undefined} sx={{ width: 32, height: 32 }} />;
+  const themeItem = (
+    <DropdownMenuItem onSelect={toggleTheme}>
+      {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
+      {resolvedTheme === 'dark' ? es.nav.lightMode : es.nav.darkMode}
+    </DropdownMenuItem>
+  );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="static" elevation={0}>
-        <Toolbar>
-          {isMobile ? (
-            <IconButton
-              color="inherit"
-              aria-label={es.nav.openMenu}
-              edge="start"
-              onClick={() => setIsDrawerOpen(true)}
-              sx={{ mr: 1 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          ) : null}
-
-          <Box
-            component={NavLink}
-            to={ADMIN_DASHBOARD_PATH}
-            sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-          >
-            <Box
-              component="img"
-              src="/assets/unibrandco-logo.webp"
-              alt="Unibrandco"
-              sx={{ height: { xs: 36, sm: 44, md: 50 }, width: 'auto', display: 'block' }}
-            />
-          </Box>
-
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
-            {adminNavItems.map(({ label: navLabel, to, icon: Icon }) => (
-              <Button
-                key={to}
-                component={NavLink}
-                to={to}
-                color="inherit"
-                startIcon={<Icon />}
-                sx={{
-                  opacity: location.pathname === to ? 1 : 0.75,
-                  fontWeight: location.pathname === to ? 600 : 400,
-                }}
-              >
-                {navLabel}
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:px-6">
+          <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label={es.nav.openMenu}>
+                <MenuIcon />
               </Button>
-            ))}
-            <Divider
-              orientation="vertical"
-              flexItem
-              sx={{ mx: 1, borderColor: 'rgba(255,255,255,0.3)' }}
-            />
-            <Button
-              color="inherit"
-              onClick={(event) => setMenuAnchor(event.currentTarget)}
-              startIcon={avatar}
-              aria-label={es.nav.openUserMenu}
-              sx={{ textTransform: 'none' }}
-            >
-              {label}
-            </Button>
-          </Box>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0">
+              <SheetTitle>{es.nav.openMenu}</SheetTitle>
+              <div className="flex h-full flex-col">
+                <div className="flex h-16 items-center px-4">
+                  <img src="/assets/unibrandco-logo-black.webp" alt="Unibrandco" className="h-8 w-auto dark:hidden" />
+                  <img src="/assets/unibrandco-logo.webp" alt="Unibrandco" className="hidden h-8 w-auto dark:block" />
+                </div>
+                <Separator />
+                <nav className="flex flex-col gap-1 p-2">
+                  {adminNavItems.map(({ label: navLabel, to, icon: Icon }) => (
+                    <SheetClose asChild key={to}>
+                      <NavLink
+                        to={to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm',
+                            isActive
+                              ? 'bg-accent font-medium text-accent-foreground'
+                              : 'text-foreground hover:bg-accent',
+                          )
+                        }
+                      >
+                        <Icon className="size-4" />
+                        {navLabel}
+                      </NavLink>
+                    </SheetClose>
+                  ))}
+                </nav>
+                <Separator />
+                <nav className="flex flex-col gap-1 p-2">
+                  <SheetClose asChild>
+                    <NavLink
+                      to={ADMIN_PROFILE_PATH}
+                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
+                    >
+                      <User className="size-4" /> {es.nav.profile}
+                    </NavLink>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <NavLink
+                      to={ADMIN_USERS_PATH}
+                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
+                    >
+                      <Users className="size-4" /> {es.nav.users}
+                    </NavLink>
+                  </SheetClose>
+                  <button
+                    type="button"
+                    onClick={() => void handleSignOut()}
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                  >
+                    <LogOut className="size-4" /> {es.nav.logout}
+                  </button>
+                </nav>
+                <div className="mt-auto flex justify-end p-3">
+                  <CorajeButton className="w-10" side="top" />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-          {isMobile ? (
-            <IconButton
-              color="inherit"
-              onClick={(event) => setMenuAnchor(event.currentTarget)}
-              aria-label={es.nav.openUserMenu}
-              edge="end"
-            >
-              {avatar}
-            </IconButton>
-          ) : null}
-        </Toolbar>
-      </AppBar>
+          <NavLink to={ADMIN_DASHBOARD_PATH} className="flex flex-1 items-center">
+            <img src="/assets/unibrandco-logo-black.webp" alt="Unibrandco" className="h-9 w-auto dark:hidden md:h-10" />
+            <img src="/assets/unibrandco-logo.webp" alt="Unibrandco" className="hidden h-9 w-auto dark:block md:h-10" />
+          </NavLink>
 
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={closeMenu}
-        disableScrollLock
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <MenuItem disabled sx={{ opacity: '1 !important' }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {label}
-          </Typography>
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => goTo(ADMIN_PROFILE_PATH)}>
-          <ListItemIcon>
-            <PersonOutlineIcon fontSize="small" />
-          </ListItemIcon>
-          {es.nav.profile}
-        </MenuItem>
-        <MenuItem onClick={() => goTo(ADMIN_USERS_PATH)}>
-          <ListItemIcon>
-            <GroupOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          {es.nav.users}
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => void handleSignOut()}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" />
-          </ListItemIcon>
-          {es.nav.logout}
-        </MenuItem>
-      </Menu>
-
-      <Drawer
-        anchor="left"
-        open={isMobile && isDrawerOpen}
-        onClose={closeDrawer}
-        ModalProps={{ keepMounted: true }}
-        slotProps={{ paper: { sx: { display: 'flex', flexDirection: 'column' } } }}
-      >
-        <Box
-          sx={{ width: 260, minHeight: '100%', display: 'flex', flexDirection: 'column' }}
-          role="presentation"
-        >
-          <Box
-            component={NavLink}
-            to={ADMIN_DASHBOARD_PATH}
-            onClick={closeDrawer}
-            sx={{
-              display: 'flex',
-              justifyContent: 'start',
-              alignItems: 'center',
-              px: 2,
-              py: 1.5,
-              textDecoration: 'none',
-            }}
-          >
-            <Box
-              component="img"
-              src="/assets/unibrandco-logo-black.webp"
-              alt="Unibrandco"
-              sx={{ height: 44, width: 'auto', display: 'block' }}
-            />
-          </Box>
-          <Divider />
-          <List>
+          <nav className="hidden items-center gap-1 md:flex">
             {adminNavItems.map(({ label: navLabel, to, icon: Icon }) => (
-              <ListItemButton
+              <NavLink
                 key={to}
-                component={NavLink}
                 to={to}
-                selected={location.pathname === to}
-                onClick={closeDrawer}
+                className={({ isActive }) =>
+                  cn(
+                    'inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm transition-colors',
+                    isActive
+                      ? 'bg-accent font-medium text-accent-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                  )
+                }
               >
-                <ListItemIcon>
-                  <Icon />
-                </ListItemIcon>
-                <ListItemText primary={navLabel} />
-              </ListItemButton>
+                <Icon className="size-4" />
+                {navLabel}
+              </NavLink>
             ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItemButton onClick={() => goTo(ADMIN_PROFILE_PATH)}>
-              <ListItemIcon>
-                <PersonOutlineIcon />
-              </ListItemIcon>
-              <ListItemText primary={es.nav.profile} />
-            </ListItemButton>
-            <ListItemButton onClick={() => goTo(ADMIN_USERS_PATH)}>
-              <ListItemIcon>
-                <GroupOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary={es.nav.users} />
-            </ListItemButton>
-            <ListItemButton onClick={() => void handleSignOut()}>
-              <ListItemIcon>
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText primary={es.nav.logout} />
-            </ListItemButton>
-          </List>
-          <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'flex-end', p: 1.5 }}>
-            <CorajeButton sx={{ width: 40 }} tooltipPlacement="top" />
-          </Box>
-        </Box>
-      </Drawer>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 2, md: 3 } }}>
+            <Separator orientation="vertical" className="mx-1 h-6" />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="gap-2 pl-1.5">
+                  {avatar}
+                  <span className="max-w-[12rem] truncate">{label}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {themeItem}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate(ADMIN_PROFILE_PATH)}>
+                  <User /> {es.nav.profile}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate(ADMIN_USERS_PATH)}>
+                  <Users /> {es.nav.users}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => void handleSignOut()}>
+                  <LogOut /> {es.nav.logout}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label={es.nav.openUserMenu} className="rounded-full">
+                  {avatar}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {themeItem}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
         <Outlet />
-      </Container>
-    </Box>
+      </main>
+    </div>
   );
 }

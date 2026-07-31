@@ -9,6 +9,8 @@ export const es = {
     logout: 'Cerrar sesión',
     openMenu: 'Abrir menú de navegación',
     openUserMenu: 'Abrir menú de usuario',
+    darkMode: 'Modo oscuro',
+    lightMode: 'Modo claro',
   },
   profile: {
     title: 'Mi perfil',

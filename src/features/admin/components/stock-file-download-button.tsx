@@ -1,9 +1,9 @@
-import DownloadIcon from '@mui/icons-material/Download';
-import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+import { Download } from 'lucide-react';
 import { type MouseEvent, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { downloadStockFile } from '../../../lib/admin-api-client';
 import { es } from '../../../i18n/es';
 import { useAuthenticatedFetch } from '../hooks/use-authenticated-fetch';
@@ -20,29 +20,29 @@ export function StockFileDownloadButton({ syncKey, onError }: StockFileDownloadB
   const handleDownload = async (event: MouseEvent<HTMLButtonElement>): Promise<void> => {
     event.stopPropagation();
     setIsDownloading(true);
-
     try {
       await withAuth((idToken) => downloadStockFile(idToken, syncKey));
     } catch (error) {
-      const message = error instanceof Error ? error.message : es.download.failed;
-      onError?.(message);
+      onError?.(error instanceof Error ? error.message : es.download.failed);
     } finally {
       setIsDownloading(false);
     }
   };
 
   return (
-    <Tooltip title={es.download.tooltip}>
-      <span>
-        <IconButton
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
           aria-label={es.download.ariaLabel(syncKey)}
-          size="small"
           disabled={isDownloading}
           onClick={(event) => void handleDownload(event)}
         >
-          {isDownloading ? <CircularProgress size={18} /> : <DownloadIcon fontSize="small" />}
-        </IconButton>
-      </span>
+          {isDownloading ? <Spinner /> : <Download />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{es.download.tooltip}</TooltipContent>
     </Tooltip>
   );
 }

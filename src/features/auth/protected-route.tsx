@@ -1,8 +1,7 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { Alert } from '@/components/ui/alert';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from './use-auth';
 import { es } from '../../i18n/es';
 
@@ -12,9 +11,9 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner className="size-6" />
+      </div>
     );
   }
 
@@ -30,11 +29,9 @@ export function ProtectedRoute() {
 
   if (!isAdmin) {
     return (
-      <Box sx={{ maxWidth: 640, mx: 'auto', mt: 4, px: 2 }}>
-        <Alert severity="error">
-          {es.auth.notAdmin}
-        </Alert>
-      </Box>
+      <div className="mx-auto mt-8 max-w-2xl px-4">
+        <Alert variant="destructive">{es.auth.notAdmin}</Alert>
+      </div>
     );
   }
 

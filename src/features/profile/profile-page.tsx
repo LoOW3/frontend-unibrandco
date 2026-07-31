@@ -1,21 +1,19 @@
-import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
-import Alert from '@mui/material/Alert';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import { Camera } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { es } from '../../i18n/es';
 import { updateMe, uploadAvatar } from '../../lib/admin-api-client';
 import { useAuthenticatedFetch } from '../admin/hooks/use-authenticated-fetch';
 import { useCurrentUser } from '../auth/use-current-user';
-import { roleChipIcon } from '../admin/components/chip-visuals';
+import { roleBadgeVariant, roleChipIcon } from '../admin/components/chip-visuals';
 
 export function ProfilePage() {
   const { withAuth } = useAuthenticatedFetch();
@@ -45,10 +43,7 @@ export function ProfilePage() {
       setUser(updated);
       setFeedback({ type: 'success', text: es.profile.saved });
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        text: error instanceof Error ? error.message : es.profile.saveFailed,
-      });
+      setFeedback({ type: 'error', text: error instanceof Error ? error.message : es.profile.saveFailed });
     } finally {
       setIsSaving(false);
     }
@@ -63,45 +58,36 @@ export function ProfilePage() {
       setUser(updated);
       setFeedback({ type: 'success', text: es.profile.saved });
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        text: error instanceof Error ? error.message : es.profile.avatarFailed,
-      });
+      setFeedback({ type: 'error', text: error instanceof Error ? error.message : es.profile.avatarFailed });
     } finally {
       setIsUploading(false);
     }
   };
 
   if (loadError) {
-    return <Alert severity="error">{loadError}</Alert>;
+    return <Alert variant="destructive">{loadError}</Alert>;
   }
 
   if (!user) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-12">
+        <Spinner className="size-6" />
+      </div>
     );
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: 560 }}>
-      <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-        {es.profile.title}
-      </Typography>
+    <div className="flex max-w-xl flex-col gap-6">
+      <h1 className="text-2xl font-bold tracking-tight">{es.profile.title}</h1>
 
-      <Card variant="outlined">
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, p: { xs: 2, sm: 3 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 72, height: 72 }} />
-            <Button
-              variant="outlined"
-              startIcon={
-                isUploading ? <CircularProgress size={16} /> : <PhotoCameraOutlinedIcon />
-              }
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-            >
+      <Card>
+        <CardContent className="flex flex-col gap-5 p-6">
+          <div className="flex items-center gap-4">
+            <Avatar className="size-[72px]">
+              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}
+            </Avatar>
+            <Button variant="outline" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
+              {isUploading ? <Spinner /> : <Camera />}
               {es.profile.changeAvatar}
             </Button>
             <input
@@ -117,56 +103,41 @@ export function ProfilePage() {
                 event.target.value = '';
               }}
             />
-          </Box>
+          </div>
 
-          {feedback ? <Alert severity={feedback.type}>{feedback.text}</Alert> : null}
+          {feedback ? (
+            <Alert variant={feedback.type === 'success' ? 'success' : 'destructive'}>{feedback.text}</Alert>
+          ) : null}
 
-          <TextField
-            label={es.profile.name}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label={es.profile.jobRole}
-            value={jobRole}
-            onChange={(event) => setJobRole(event.target.value)}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label={es.profile.email}
-            value={user.email}
-            size="small"
-            fullWidth
-            disabled
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="name">{es.profile.name}</Label>
+            <Input id="name" value={name} onChange={(event) => setName(event.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="jobRole">{es.profile.jobRole}</Label>
+            <Input id="jobRole" value={jobRole} onChange={(event) => setJobRole(event.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email">{es.profile.email}</Label>
+            <Input id="email" value={user.email} disabled />
+          </div>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              {es.profile.permissionRole}:
-            </Typography>
-            <Chip
-              size="small"
-              color={user.role === 'SUPER_ADMIN' ? 'secondary' : 'default'}
-              icon={roleChipIcon(user.role)}
-              label={es.roles[user.role]}
-            />
-          </Box>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{es.profile.permissionRole}:</span>
+            <Badge variant={roleBadgeVariant(user.role)}>
+              {roleChipIcon(user.role)}
+              {es.roles[user.role]}
+            </Badge>
+          </div>
 
-          <Box>
-            <Button
-              variant="contained"
-              onClick={() => void handleSave()}
-              disabled={isSaving}
-              startIcon={isSaving ? <CircularProgress size={16} color="inherit" /> : undefined}
-            >
+          <div>
+            <Button onClick={() => void handleSave()} disabled={isSaving}>
+              {isSaving ? <Spinner className="text-current" /> : null}
               {isSaving ? es.profile.saving : es.profile.save}
             </Button>
-          </Box>
+          </div>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 }

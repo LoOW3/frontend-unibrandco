@@ -1,4 +1,3 @@
-import Box from '@mui/material/Box';
 import type { ReactNode } from 'react';
 
 const TIENDANUBE_WORD = /^Tiendanube$/i;
@@ -8,17 +7,10 @@ const TIENDANUBE_WORD = /^Tiendanube$/i;
  */
 export function TiendanubeLogo() {
   return (
-    <Box
-      component="img"
+    <img
       src="/assets/tienda-nube-logo.svg"
       alt="Tiendanube"
-      sx={{
-        height: '1em',
-        width: 'auto',
-        verticalAlign: '-0.15em',
-        display: 'inline',
-        mx: 0.25,
-      }}
+      className="mx-0.5 inline h-[1em] w-auto align-[-0.15em]"
     />
   );
 }

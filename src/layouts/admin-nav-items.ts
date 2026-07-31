@@ -1,8 +1,4 @@
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
-import type { SvgIconComponent } from '@mui/icons-material';
+import { Folder, LayoutDashboard, RefreshCw, ShoppingCart, type LucideIcon } from 'lucide-react';
 
 import { es } from '../i18n/es';
 
@@ -16,12 +12,12 @@ export const ADMIN_USERS_PATH = '/admin/users';
 export interface AdminNavItem {
   label: string;
   to: string;
-  icon: SvgIconComponent;
+  icon: LucideIcon;
 }
 
 export const adminNavItems: AdminNavItem[] = [
-  { label: es.nav.dashboard, to: ADMIN_DASHBOARD_PATH, icon: DashboardOutlinedIcon },
-  { label: es.nav.pedidos, to: ADMIN_PEDIDOS_PATH, icon: ShoppingCartOutlinedIcon },
-  { label: es.nav.stockFiles, to: ADMIN_STOCK_FILES_PATH, icon: FolderOutlinedIcon },
-  { label: es.nav.manualSync, to: ADMIN_MANUAL_SYNC_PATH, icon: SyncOutlinedIcon },
+  { label: es.nav.dashboard, to: ADMIN_DASHBOARD_PATH, icon: LayoutDashboard },
+  { label: es.nav.pedidos, to: ADMIN_PEDIDOS_PATH, icon: ShoppingCart },
+  { label: es.nav.stockFiles, to: ADMIN_STOCK_FILES_PATH, icon: Folder },
+  { label: es.nav.manualSync, to: ADMIN_MANUAL_SYNC_PATH, icon: RefreshCw },
 ];
