@@ -169,4 +169,3 @@ export function StockChangeDetailDialog({ syncKey, open, onClose }: StockChangeD
     </Dialog>
   );
 }
-</content>

@@ -30,4 +30,3 @@ export function StockFilesMobileList({ files, onDownloadError }: StockFilesMobil
     </div>
   );
 }
-</content>

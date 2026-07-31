@@ -1,7 +1,7 @@
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+
+import { Spinner } from '@/components/ui/spinner';
 
 import { CurrentUserProvider } from '../features/auth/current-user-provider';
 import { ProtectedRoute } from '../features/auth/protected-route';
@@ -49,9 +49,9 @@ const UsersPage = lazy(() =>
 
 function PageLoader() {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-      <CircularProgress />
-    </Box>
+    <div className="flex justify-center py-16">
+      <Spinner className="size-7" />
+    </div>
   );
 }
 

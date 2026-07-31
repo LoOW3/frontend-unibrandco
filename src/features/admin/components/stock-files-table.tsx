@@ -72,4 +72,3 @@ export function StockFilesTable({ files, date, error, isLoading }: StockFilesTab
     </Card>
   );
 }
-</content>

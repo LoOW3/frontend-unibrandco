@@ -1,13 +1,8 @@
-import CloseIcon from '@mui/icons-material/Close';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
 import { useEffect, useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { getManualSyncRun } from '../../../lib/admin-api-client';
@@ -74,22 +69,18 @@ export function ManualSyncRunDetailDialog({ runId, open, onClose }: ManualSyncRu
   }, [open, runId, withAuth]);
 
   return (
-    <Dialog open={open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="md">
-      <DialogTitle
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-      >
-        {es.manualSync.runDetailTitle}
-        <IconButton aria-label={es.pedidoDetailDialog.close} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent fullScreen={isMobile} className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{es.manualSync.runDetailTitle}</DialogTitle>
+        </DialogHeader>
+
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : null}
-        {error ? <Alert severity="error">{error}</Alert> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
         {manifest ? <ManualSyncRunDetail manifest={manifest} /> : null}
       </DialogContent>
     </Dialog>

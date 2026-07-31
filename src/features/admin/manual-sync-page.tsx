@@ -1,27 +1,23 @@
-import SyncIcon from '@mui/icons-material/Sync';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import Typography from '@mui/material/Typography';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { esES } from '@mui/x-date-pickers/locales';
+import { RefreshCw } from 'lucide-react';
 import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import 'dayjs/locale/es';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Switch } from '@/components/ui/switch';
 import { TiendanubeBrandText } from '../../components/tiendanube-brand';
 import { es } from '../../i18n/es';
 import {
@@ -45,23 +41,11 @@ function getUtcDateString(value: Dayjs): string {
   return value.utc().format('YYYY-MM-DD');
 }
 
-function ManualSyncDateProvider({ children }: { children: ReactNode }) {
-  return (
-    <LocalizationProvider
-      dateAdapter={AdapterDayjs}
-      adapterLocale="es"
-      localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}
-    >
-      {children}
-    </LocalizationProvider>
-  );
-}
-
 function isActiveStatus(status: string): boolean {
   return status === 'RUNNING' || status === 'PENDING';
 }
 
-function ManualSyncPageContent() {
+export function ManualSyncPage() {
   const { withAuth } = useAuthenticatedFetch();
 
   const maxDate = dayjs.utc().startOf('day');
@@ -201,100 +185,54 @@ function ManualSyncPageContent() {
   const runActive = Boolean(activeRunId);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box>
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' } }}
-        >
-          {es.manualSync.title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{es.manualSync.title}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           <TiendanubeBrandText text={es.manualSync.description} />
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
-      <Card variant="outlined">
-        <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: 2,
-              alignItems: { xs: 'stretch', sm: 'center' },
-            }}
-          >
-            <Button
-              variant="contained"
-              startIcon={isTriggering ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
-              disabled={isTriggering || runActive}
-              onClick={() => void handleTrigger()}
-            >
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+            <Button disabled={isTriggering || runActive} onClick={() => void handleTrigger()}>
+              {isTriggering ? <Spinner className="text-current" /> : <RefreshCw />}
               {isTriggering ? es.manualSync.triggering : es.manualSync.trigger}
             </Button>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={dryRun}
-                  disabled={runActive}
-                  onChange={(event) => setDryRun(event.target.checked)}
-                />
-              }
-              label={es.manualSync.dryRun}
-            />
-          </Box>
-          {runActive ? (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              {es.manualSync.alreadyRunning}
-            </Alert>
-          ) : null}
-          {triggerError ? (
-            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setTriggerError(null)}>
-              {triggerError}
-            </Alert>
-          ) : null}
+            <div className="flex items-center gap-2">
+              <Switch id="dry-run" checked={dryRun} disabled={runActive} onCheckedChange={setDryRun} />
+              <Label htmlFor="dry-run" className="cursor-pointer">
+                {es.manualSync.dryRun}
+              </Label>
+            </div>
+          </div>
+          {runActive ? <Alert variant="info" className="mt-4">{es.manualSync.alreadyRunning}</Alert> : null}
+          {triggerError ? <Alert variant="destructive" className="mt-4">{triggerError}</Alert> : null}
         </CardContent>
       </Card>
 
       {activeRunId ? (
-        <Card variant="outlined">
-          <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-            <Typography variant="h6" gutterBottom>
-              {es.manualSync.activeRunTitle}
-            </Typography>
-            {activeError ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {activeError}
-              </Alert>
-            ) : null}
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <h2 className="mb-4 text-base font-semibold">{es.manualSync.activeRunTitle}</h2>
+            {activeError ? <Alert variant="destructive" className="mb-4">{activeError}</Alert> : null}
             {activeManifest ? (
-              <ManualSyncRunDetail
-                manifest={activeManifest}
-                onAbort={handleAbortClick}
-                aborting={isAborting}
-              />
+              <ManualSyncRunDetail manifest={activeManifest} onAbort={handleAbortClick} aborting={isAborting} />
             ) : (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress size={28} />
-              </Box>
+              <div className="flex justify-center py-8">
+                <Spinner className="size-7" />
+              </div>
             )}
           </CardContent>
         </Card>
       ) : null}
 
       <DatePicker
-        label={es.manualSync.dateLabel}
         value={selectedDate}
         minDate={minDate}
         maxDate={maxDate}
-        timezone="UTC"
-        onChange={(value) => {
-          if (value) {
-            setSelectedDate(value.utc().startOf('day'));
-          }
-        }}
-        slotProps={{ textField: { size: 'small', fullWidth: true, sx: { maxWidth: { sm: 280 } } } }}
+        onChange={(value) => setSelectedDate(value.utc().startOf('day'))}
       />
 
       <ManualSyncRunsTable
@@ -313,36 +251,29 @@ function ManualSyncPageContent() {
         onClose={() => setDialogRunId(null)}
       />
 
-      <Dialog open={abortConfirmOpen} onClose={() => setAbortConfirmOpen(false)}>
-        <DialogTitle>{es.manualSync.abortConfirmTitle}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            <TiendanubeBrandText text={es.manualSync.abortConfirmBody} />
-          </DialogContentText>
+      <Dialog open={abortConfirmOpen} onOpenChange={(next) => !next && setAbortConfirmOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{es.manualSync.abortConfirmTitle}</DialogTitle>
+            <DialogDescription>
+              <TiendanubeBrandText text={es.manualSync.abortConfirmBody} />
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAbortConfirmOpen(false)} disabled={isAborting}>
+              {es.manualSync.cancel}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void doAbort()}
+              disabled={isAborting}
+            >
+              {isAborting ? <Spinner className="text-current" /> : null}
+              {isAborting ? es.manualSync.aborting : es.manualSync.abortConfirm}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAbortConfirmOpen(false)} disabled={isAborting}>
-            {es.manualSync.cancel}
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={() => void doAbort()}
-            disabled={isAborting}
-            startIcon={isAborting ? <CircularProgress size={16} color="inherit" /> : undefined}
-          >
-            {isAborting ? es.manualSync.aborting : es.manualSync.abortConfirm}
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
-  );
-}
-
-export function ManualSyncPage() {
-  return (
-    <ManualSyncDateProvider>
-      <ManualSyncPageContent />
-    </ManualSyncDateProvider>
+    </div>
   );
 }

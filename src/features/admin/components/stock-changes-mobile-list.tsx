@@ -68,4 +68,3 @@ export function StockChangesMobileList({
     </div>
   );
 }
-</content>

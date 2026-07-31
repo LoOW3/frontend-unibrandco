@@ -117,4 +117,3 @@ export function StockChangesTable({
     </Card>
   );
 }
-</content>

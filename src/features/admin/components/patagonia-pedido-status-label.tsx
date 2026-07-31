@@ -1,5 +1,4 @@
-import Typography from '@mui/material/Typography';
-
+import { cn } from '@/lib/cn';
 import { es } from '../../../i18n/es';
 import type {
   PatagoniaPedidoFulfillmentStatus,
@@ -15,7 +14,6 @@ export function formatPatagoniaPedidoFulfillmentStatus(
   if (fulfillmentStatus === 'PACKED') {
     return es.pedidos.statusPacked;
   }
-
   return es.pedidos.statusDispatchedLegacy;
 }
 
@@ -29,11 +27,9 @@ export function formatPatagoniaPedidoStatus(
   if (status === 'pending') {
     return es.pedidos.statusPending;
   }
-
   if (fulfillmentStatus) {
     return formatPatagoniaPedidoFulfillmentStatus(fulfillmentStatus);
   }
-
   return es.pedidos.statusShipped;
 }
 
@@ -43,22 +39,11 @@ interface PatagoniaPedidoStatusLabelProps {
 }
 
 /** Renders a pedido status with semantic color. */
-export function PatagoniaPedidoStatusLabel({
-  status,
-  fulfillmentStatus,
-}: PatagoniaPedidoStatusLabelProps) {
+export function PatagoniaPedidoStatusLabel({ status, fulfillmentStatus }: PatagoniaPedidoStatusLabelProps) {
   const isShipped = status === 'shipped';
-
   return (
-    <Typography
-      variant="body2"
-      component="span"
-      sx={{
-        color: isShipped ? 'success.main' : 'text.secondary',
-        fontWeight: isShipped ? 600 : 400,
-      }}
-    >
+    <span className={cn('text-sm', isShipped ? 'font-semibold text-success' : 'text-muted-foreground')}>
       {formatPatagoniaPedidoStatus(status, fulfillmentStatus)}
-    </Typography>
+    </span>
   );
 }

@@ -3,6 +3,8 @@ import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useState } from 'react';
 
+import type { Matcher } from 'react-day-picker';
+
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -43,6 +45,14 @@ export function DatePicker({ value, onChange, minDate, maxDate, className, disab
   const [open, setOpen] = useState(false);
   const selected = dayjsToDate(value);
 
+  const disabledMatchers: Matcher[] = [];
+  if (minDate) {
+    disabledMatchers.push({ before: dayjsToDate(minDate) });
+  }
+  if (maxDate) {
+    disabledMatchers.push({ after: dayjsToDate(maxDate) });
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -61,10 +71,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, className, disab
           mode="single"
           selected={selected}
           defaultMonth={selected}
-          disabled={{
-            before: minDate ? dayjsToDate(minDate) : undefined,
-            after: maxDate ? dayjsToDate(maxDate) : undefined,
-          }}
+          disabled={disabledMatchers}
           onSelect={(date) => {
             if (date) {
               onChange(dateToDayjs(date));

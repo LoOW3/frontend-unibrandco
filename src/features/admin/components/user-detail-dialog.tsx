@@ -1,32 +1,21 @@
-import CloseIcon from '@mui/icons-material/Close';
-import Alert from '@mui/material/Alert';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import { useEffect, useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
-import {
-  deleteUser,
-  getUser,
-  setUserEnabled,
-  updateUser,
-} from '../../../lib/admin-api-client';
+import { deleteUser, getUser, setUserEnabled, updateUser } from '../../../lib/admin-api-client';
 import type { AdminUser, UserRole } from '../../../types/admin-api';
 import { useAuth } from '../../auth/use-auth';
 import { useAuthenticatedFetch } from '../hooks/use-authenticated-fetch';
-import { roleChipIcon, userStatusIcon } from './chip-visuals';
+import { roleBadgeVariant, roleChipIcon, userStatusIcon, userStatusVariant } from './chip-visuals';
 
 interface UserDetailDialogProps {
   email: string | null;
@@ -111,136 +100,127 @@ export function UserDetailDialog({ email, open, onClose, onChanged }: UserDetail
     : '';
 
   return (
-    <Dialog open={open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {es.users.detailTitle}
-        <IconButton aria-label={es.users.cancel} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {error ? <Alert severity="error">{error}</Alert> : null}
-        {!user ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
-        ) : (
-          <>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 56, height: 56 }} />
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>{user.name ?? '—'}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {user.email}
-                </Typography>
-              </Box>
-              <Chip
-                size="small"
-                variant="outlined"
-                icon={userStatusIcon(user)}
-                label={statusLabel}
-                sx={{ ml: 'auto' }}
-              />
-            </Box>
+    <>
+      <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+        <DialogContent fullScreen={isMobile} className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{es.users.detailTitle}</DialogTitle>
+          </DialogHeader>
 
-            {isSuperAdmin ? (
-              <>
-                <TextField
-                  label={es.users.name}
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  label={es.users.jobRole}
-                  value={jobRole}
-                  onChange={(event) => setJobRole(event.target.value)}
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  select
-                  label={es.users.role}
-                  value={role}
-                  onChange={(event) => setRole(event.target.value as UserRole)}
-                  size="small"
-                  fullWidth
+          {error ? <Alert variant="destructive">{error}</Alert> : null}
+          {!user ? (
+            <div className="flex justify-center py-8">
+              <Spinner className="size-7" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-14">
+                  {user.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="font-semibold">{user.name ?? '—'}</p>
+                  <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                </div>
+                <Badge variant={userStatusVariant(user)} className="ml-auto">
+                  {userStatusIcon(user)}
+                  {statusLabel}
+                </Badge>
+              </div>
+
+              {isSuperAdmin ? (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="user-name">{es.users.name}</Label>
+                    <Input id="user-name" value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="user-jobrole">{es.users.jobRole}</Label>
+                    <Input id="user-jobrole" value={jobRole} onChange={(e) => setJobRole(e.target.value)} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label>{es.users.role}</Label>
+                    <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ADMIN">{es.roles.ADMIN}</SelectItem>
+                        <SelectItem value="SUPER_ADMIN">{es.roles.SUPER_ADMIN}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm">
+                    {es.users.jobRole}: {user.jobRole ?? '—'}
+                  </p>
+                  <Badge variant={roleBadgeVariant(user.role)} className="w-fit">
+                    {roleChipIcon(user.role)}
+                    {es.roles[user.role]}
+                  </Badge>
+                </>
+              )}
+            </div>
+          )}
+
+          {isSuperAdmin && user ? (
+            <DialogFooter className="sm:justify-between">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className={user.enabled ? 'text-warning' : 'text-success'}
+                  disabled={busy}
+                  onClick={() => void run((idToken) => setUserEnabled(idToken, user.email, !user.enabled))}
                 >
-                  <MenuItem value="ADMIN">{es.roles.ADMIN}</MenuItem>
-                  <MenuItem value="SUPER_ADMIN">{es.roles.SUPER_ADMIN}</MenuItem>
-                </TextField>
-              </>
-            ) : (
-              <>
-                <Typography variant="body2">
-                  {es.users.jobRole}: {user.jobRole ?? '—'}
-                </Typography>
-                <Chip size="small" icon={roleChipIcon(user.role)} label={es.roles[user.role]} />
-              </>
-            )}
-          </>
-        )}
-      </DialogContent>
-
-      {isSuperAdmin && user ? (
-        <DialogActions sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between', px: 3, py: 2 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              color={user.enabled ? 'warning' : 'success'}
-              disabled={busy}
-              onClick={() => void run((idToken) => setUserEnabled(idToken, user.email, !user.enabled))}
-            >
-              {user.enabled ? es.users.disable : es.users.enable}
-            </Button>
-            <Button
-              color="error"
-              disabled={busy}
-              onClick={() => setConfirmDelete(true)}
-            >
-              {es.users.delete}
-            </Button>
-          </Box>
-          <Button
-            variant="contained"
-            disabled={busy}
-            startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}
-            onClick={() =>
-              void run((idToken) =>
-                updateUser(idToken, user.email, { name: name.trim(), jobRole: jobRole.trim(), role }),
-              )
-            }
-          >
-            {busy ? es.users.saving : es.users.save}
-          </Button>
-        </DialogActions>
-      ) : null}
-
-      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <DialogTitle>{es.users.deleteConfirmTitle}</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">
-            {user ? es.users.deleteConfirmBody(user.email) : ''}
-          </Typography>
+                  {user.enabled ? es.users.disable : es.users.enable}
+                </Button>
+                <Button variant="outline" className="text-destructive" disabled={busy} onClick={() => setConfirmDelete(true)}>
+                  {es.users.delete}
+                </Button>
+              </div>
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  void run((idToken) =>
+                    updateUser(idToken, user.email, { name: name.trim(), jobRole: jobRole.trim(), role }),
+                  )
+                }
+              >
+                {busy ? <Spinner className="text-current" /> : null}
+                {busy ? es.users.saving : es.users.save}
+              </Button>
+            </DialogFooter>
+          ) : null}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDelete(false)} disabled={busy}>
-            {es.users.cancel}
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            disabled={busy}
-            onClick={() => {
-              if (user) {
-                void run((idToken) => deleteUser(idToken, user.email), true);
-              }
-            }}
-          >
-            {es.users.deleteConfirm}
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Dialog>
+
+      <Dialog open={confirmDelete} onOpenChange={(next) => !next && setConfirmDelete(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{es.users.deleteConfirmTitle}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{user ? es.users.deleteConfirmBody(user.email) : ''}</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)} disabled={busy}>
+              {es.users.cancel}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={busy}
+              onClick={() => {
+                if (user) {
+                  void run((idToken) => deleteUser(idToken, user.email), true);
+                }
+              }}
+            >
+              {busy ? <Spinner className="text-current" /> : null}
+              {es.users.deleteConfirm}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

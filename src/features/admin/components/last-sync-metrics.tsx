@@ -115,4 +115,3 @@ export function LastSyncMetrics({ data, error, isLoading }: LastSyncMetricsProps
     </Card>
   );
 }
-</content>
