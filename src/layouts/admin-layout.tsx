@@ -1,31 +1,48 @@
-import { LogOut, Menu as MenuIcon, Moon, Sun, User, Users } from 'lucide-react';
+import { LogOut, Menu as MenuIcon, Moon, Sun, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
-import { CorajeButton } from '@/components/coraje-anchor';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/features/auth/use-auth';
 import { useCurrentUser } from '@/features/auth/use-current-user';
 import { useTheme } from '@/features/theme/use-theme';
 import { cn } from '@/lib/cn';
 import { es } from '@/i18n/es';
-import {
-  ADMIN_DASHBOARD_PATH,
-  ADMIN_PROFILE_PATH,
-  ADMIN_USERS_PATH,
-  adminNavItems,
-} from './admin-nav-items';
+import { ADMIN_DASHBOARD_PATH, ADMIN_PROFILE_PATH, ADMIN_USERS_PATH, adminNavItems } from './admin-nav-items';
+
+const ITEM_BASE = 'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors';
+const ITEM_INACTIVE = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground';
+const ITEM_ACTIVE = 'bg-accent font-medium text-accent-foreground';
+
+function Logo() {
+  return (
+    <>
+      <img src="/assets/unibrandco-logo-black.webp" alt="Unibrandco" className="h-8 w-auto dark:hidden" />
+      <img src="/assets/unibrandco-logo.webp" alt="Unibrandco" className="hidden h-8 w-auto dark:block" />
+    </>
+  );
+}
+
+function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+      {adminNavItems.map(({ label, to, icon: Icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          onClick={onNavigate}
+          className={({ isActive }) => cn(ITEM_BASE, isActive ? ITEM_ACTIVE : ITEM_INACTIVE)}
+        >
+          <Icon className="size-4 shrink-0" />
+          <span className="truncate">{label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
 
 export function AdminLayout() {
   const { signOut, email } = useAuth();
@@ -35,6 +52,8 @@ export function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const label = user?.name ?? user?.email ?? email ?? '';
+  const roleLabel = user ? es.roles[user.role] : '';
+  const themeLabel = resolvedTheme === 'dark' ? es.nav.lightMode : es.nav.darkMode;
 
   const handleSignOut = async (): Promise<void> => {
     await signOut();
@@ -42,159 +61,123 @@ export function AdminLayout() {
   };
 
   const avatar = (
-    <Avatar className="size-8">{user?.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}</Avatar>
+    <span className="block size-8 shrink-0 overflow-hidden rounded-full bg-muted">
+      {user?.avatarUrl ? <img src={user.avatarUrl} alt="" className="size-full object-cover" /> : null}
+    </span>
   );
 
-  const themeItem = (
-    <DropdownMenuItem onSelect={toggleTheme}>
-      {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
-      {resolvedTheme === 'dark' ? es.nav.lightMode : es.nav.darkMode}
-    </DropdownMenuItem>
-  );
+  // Footer, always visible. Order top → bottom:
+  // Users · theme toggle · divider · user (→ profile) · logout.
+  const renderFooter = (onNavigate?: () => void): ReactNode => {
+    const goProfile = (): void => {
+      onNavigate?.();
+      navigate(ADMIN_PROFILE_PATH);
+    };
+
+    return (
+      <div className="flex flex-col gap-1 p-2">
+        <NavLink
+          to={ADMIN_USERS_PATH}
+          onClick={onNavigate}
+          className={({ isActive }) => cn(ITEM_BASE, isActive ? ITEM_ACTIVE : ITEM_INACTIVE)}
+        >
+          <Users className="size-4 shrink-0" />
+          <span className="truncate">{es.nav.users}</span>
+        </NavLink>
+
+        <button type="button" onClick={toggleTheme} className={cn(ITEM_BASE, ITEM_INACTIVE)}>
+          {resolvedTheme === 'dark' ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
+          <span className="truncate">{themeLabel}</span>
+        </button>
+
+        <Separator className="my-1" />
+
+        <button
+          type="button"
+          onClick={goProfile}
+          aria-label={es.nav.profile}
+          className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent"
+        >
+          {avatar}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-foreground">{label}</span>
+            <span className="block truncate text-xs text-muted-foreground">{roleLabel}</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          className={cn(ITEM_BASE, ITEM_INACTIVE)}
+        >
+          <LogOut className="size-4 shrink-0" />
+          <span className="truncate">{es.nav.logout}</span>
+        </button>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:px-6">
+    <div className="flex min-h-screen bg-background">
+      {/* Desktop sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
+        <div className="flex h-16 items-center px-4">
+          <NavLink to={ADMIN_DASHBOARD_PATH} className="flex items-center overflow-hidden">
+            <Logo />
+          </NavLink>
+        </div>
+        <Separator />
+
+        <NavLinks />
+
+        <Separator />
+        {renderFooter()}
+      </aside>
+
+      {/* Content column */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top bar */}
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-card/80 px-4 backdrop-blur md:hidden">
           <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label={es.nav.openMenu}>
+              <Button variant="ghost" size="icon" aria-label={es.nav.openMenu}>
                 <MenuIcon />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <SheetTitle>{es.nav.openMenu}</SheetTitle>
+            <SheetContent side="left" className="w-64 p-0">
+              <SheetTitle className="sr-only">{es.nav.openMenu}</SheetTitle>
               <div className="flex h-full flex-col">
                 <div className="flex h-16 items-center px-4">
-                  <img src="/assets/unibrandco-logo-black.webp" alt="Unibrandco" className="h-8 w-auto dark:hidden" />
-                  <img src="/assets/unibrandco-logo.webp" alt="Unibrandco" className="hidden h-8 w-auto dark:block" />
+                  <Logo />
                 </div>
                 <Separator />
-                <nav className="flex flex-col gap-1 p-2">
-                  {adminNavItems.map(({ label: navLabel, to, icon: Icon }) => (
-                    <SheetClose asChild key={to}>
-                      <NavLink
-                        to={to}
-                        className={({ isActive }) =>
-                          cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm',
-                            isActive
-                              ? 'bg-accent font-medium text-accent-foreground'
-                              : 'text-foreground hover:bg-accent',
-                          )
-                        }
-                      >
-                        <Icon className="size-4" />
-                        {navLabel}
-                      </NavLink>
-                    </SheetClose>
-                  ))}
-                </nav>
+                <NavLinks onNavigate={() => setDrawerOpen(false)} />
                 <Separator />
-                <nav className="flex flex-col gap-1 p-2">
-                  <SheetClose asChild>
-                    <NavLink
-                      to={ADMIN_PROFILE_PATH}
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
-                    >
-                      <User className="size-4" /> {es.nav.profile}
-                    </NavLink>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <NavLink
-                      to={ADMIN_USERS_PATH}
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
-                    >
-                      <Users className="size-4" /> {es.nav.users}
-                    </NavLink>
-                  </SheetClose>
-                  <button
-                    type="button"
-                    onClick={() => void handleSignOut()}
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
-                  >
-                    <LogOut className="size-4" /> {es.nav.logout}
-                  </button>
-                </nav>
-                <div className="mt-auto flex justify-end p-3">
-                  <CorajeButton className="w-10" side="top" />
-                </div>
+                {renderFooter(() => setDrawerOpen(false))}
               </div>
             </SheetContent>
           </Sheet>
 
           <NavLink to={ADMIN_DASHBOARD_PATH} className="flex flex-1 items-center">
-            <img src="/assets/unibrandco-logo-black.webp" alt="Unibrandco" className="h-9 w-auto dark:hidden md:h-10" />
-            <img src="/assets/unibrandco-logo.webp" alt="Unibrandco" className="hidden h-9 w-auto dark:block md:h-10" />
+            <Logo />
           </NavLink>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {adminNavItems.map(({ label: navLabel, to, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  cn(
-                    'inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm transition-colors',
-                    isActive
-                      ? 'bg-accent font-medium text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                  )
-                }
-              >
-                <Icon className="size-4" />
-                {navLabel}
-              </NavLink>
-            ))}
+          <button
+            type="button"
+            onClick={() => navigate(ADMIN_PROFILE_PATH)}
+            aria-label={es.nav.profile}
+            className="rounded-full"
+          >
+            {avatar}
+          </button>
+        </header>
 
-            <Separator orientation="vertical" className="mx-1 h-6" />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2 pl-1.5">
-                  {avatar}
-                  <span className="max-w-[12rem] truncate">{label}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {themeItem}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => navigate(ADMIN_PROFILE_PATH)}>
-                  <User /> {es.nav.profile}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => navigate(ADMIN_USERS_PATH)}>
-                  <Users /> {es.nav.users}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => void handleSignOut()}>
-                  <LogOut /> {es.nav.logout}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </nav>
-
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={es.nav.openUserMenu} className="rounded-full">
-                  {avatar}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {themeItem}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
           </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-        <Outlet />
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

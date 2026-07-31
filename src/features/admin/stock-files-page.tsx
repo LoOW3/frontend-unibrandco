@@ -32,7 +32,7 @@ export function StockFilesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{es.stockFiles.title}</h1>
+      <h1 className="text-xl font-semibold tracking-tight">{es.stockFiles.title}</h1>
 
       <div className="flex flex-col gap-1.5">
         <Label>{es.stockFiles.dateLabel}</Label>

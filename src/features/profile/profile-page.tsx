@@ -78,7 +78,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex max-w-xl flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight">{es.profile.title}</h1>
+      <h1 className="text-xl font-semibold tracking-tight">{es.profile.title}</h1>
 
       <Card>
         <CardContent className="flex flex-col gap-5 p-6">

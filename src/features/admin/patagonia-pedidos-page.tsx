@@ -17,7 +17,7 @@ export function PatagoniaPedidosPage() {
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center justify-between gap-3">
-          <h1 className="min-w-0 text-2xl font-bold tracking-tight md:text-3xl">{es.pedidos.title}</h1>
+          <h1 className="min-w-0 text-xl font-semibold tracking-tight">{es.pedidos.title}</h1>
           <Button variant="ghost" size="icon" aria-label={es.pedidos.reload} onClick={() => pedidos.reload()} disabled={pedidos.isLoading}>
             {pedidos.isLoading ? <Spinner /> : <RefreshCw />}
           </Button>

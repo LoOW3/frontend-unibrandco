@@ -10,7 +10,7 @@ export function TiendanubeLogo() {
     <img
       src="/assets/tienda-nube-logo.svg"
       alt="Tiendanube"
-      className="mx-0.5 inline h-[1em] w-auto align-[-0.15em]"
+      className="mx-0.5 inline-block h-[0.8em] w-auto align-[-0.08em]"
     />
   );
 }

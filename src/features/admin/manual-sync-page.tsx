@@ -187,7 +187,7 @@ export function ManualSyncPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{es.manualSync.title}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{es.manualSync.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           <TiendanubeBrandText text={es.manualSync.description} />
         </p>

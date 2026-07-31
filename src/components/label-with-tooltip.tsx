@@ -24,7 +24,7 @@ export function LabelWithTooltip({ label, tooltip, align = 'left', className }: 
       <TooltipTrigger asChild>
         <span
           className={cn(
-            'inline-flex cursor-help border-b border-dotted border-muted-foreground/50 text-xs text-muted-foreground',
+            'inline-flex items-baseline cursor-help border-b border-dotted border-muted-foreground/50 text-xs text-muted-foreground',
             align === 'right' && 'justify-end text-right',
             align === 'center' && 'justify-center text-center',
             className,

@@ -7,9 +7,9 @@ import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { ActorBadge } from './actor-badge';
-import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
@@ -112,6 +112,25 @@ function StepCircle({ step, index, manifest }: { step: ManualSyncStep; index: nu
   );
 }
 
+/** Step caption: inline text that wraps word-by-word and centers via the parent. */
+function StepLabel({ step, align }: { step: ManualSyncStep; align: 'center' | 'left' }) {
+  const desc = es.manualSync.stepDescriptions[step.key];
+  const cls = cn('leading-tight text-foreground', align === 'center' ? 'block text-center text-xs' : 'text-sm');
+  const text = <TiendanubeBrandText text={stepLabelText(step)} />;
+
+  if (!desc) {
+    return <span className={cls}>{text}</span>;
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={cn(cls, 'cursor-help')}>{text}</span>
+      </TooltipTrigger>
+      <TooltipContent>{desc}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function Stepper({ manifest }: { manifest: ManualSyncManifest }) {
   const isMobile = useIsMobile();
 
@@ -121,11 +140,7 @@ function Stepper({ manifest }: { manifest: ManualSyncManifest }) {
         {manifest.steps.map((step, index) => (
           <div key={step.key} className="flex items-center gap-3">
             <StepCircle step={step} index={index} manifest={manifest} />
-            <LabelWithTooltip
-              label={stepLabelText(step)}
-              tooltip={es.manualSync.stepDescriptions[step.key] ?? ''}
-              className="border-none text-sm text-foreground"
-            />
+            <StepLabel step={step} align="left" />
           </div>
         ))}
       </div>
@@ -135,14 +150,9 @@ function Stepper({ manifest }: { manifest: ManualSyncManifest }) {
   return (
     <div className="flex items-start justify-between gap-2">
       {manifest.steps.map((step, index) => (
-        <div key={step.key} className="flex flex-1 flex-col items-center gap-2 text-center">
+        <div key={step.key} className="flex flex-1 flex-col items-center gap-2">
           <StepCircle step={step} index={index} manifest={manifest} />
-          <LabelWithTooltip
-            label={stepLabelText(step)}
-            tooltip={es.manualSync.stepDescriptions[step.key] ?? ''}
-            align="center"
-            className="border-none text-xs text-foreground"
-          />
+          <StepLabel step={step} align="center" />
         </div>
       ))}
     </div>

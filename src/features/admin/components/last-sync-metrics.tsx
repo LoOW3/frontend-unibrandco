@@ -1,4 +1,8 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+
 import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -39,6 +43,8 @@ function MetricItem({
 }
 
 export function LastSyncMetrics({ data, error, isLoading }: LastSyncMetricsProps) {
+  const [itemsOpen, setItemsOpen] = useState(false);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -86,28 +92,42 @@ export function LastSyncMetrics({ data, error, isLoading }: LastSyncMetricsProps
         </div>
 
         {lastSync.patchedItems.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{es.metrics.sku}</TableHead>
-                <TableHead className="text-right">
-                  <LabelWithTooltip label={es.metrics.previousStock} tooltip={es.tooltips.previousStock} align="right" />
-                </TableHead>
-                <TableHead className="text-right">
-                  <LabelWithTooltip label={es.metrics.newStock} tooltip={es.tooltips.newStock} align="right" />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lastSync.patchedItems.map((item) => (
-                <TableRow key={item.sku}>
-                  <TableCell className="font-mono text-xs">{item.sku}</TableCell>
-                  <TableCell className="text-right">{item.previousStock ?? '—'}</TableCell>
-                  <TableCell className="text-right">{item.newStock}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-2 gap-1.5 text-muted-foreground"
+              onClick={() => setItemsOpen((open) => !open)}
+              aria-expanded={itemsOpen}
+            >
+              {itemsOpen ? <ChevronDown /> : <ChevronRight />}
+              {itemsOpen ? es.metrics.hidePatchedItems : es.metrics.showPatchedItems} ({lastSync.patchedItems.length})
+            </Button>
+            {itemsOpen ? (
+              <Table className="mt-2">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{es.metrics.sku}</TableHead>
+                    <TableHead className="text-right">
+                      <LabelWithTooltip label={es.metrics.previousStock} tooltip={es.tooltips.previousStock} align="right" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <LabelWithTooltip label={es.metrics.newStock} tooltip={es.tooltips.newStock} align="right" />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lastSync.patchedItems.map((item) => (
+                    <TableRow key={item.sku}>
+                      <TableCell className="font-mono text-xs">{item.sku}</TableCell>
+                      <TableCell className="text-right">{item.previousStock ?? '—'}</TableCell>
+                      <TableCell className="text-right">{item.newStock}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : null}
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">{es.metrics.noPatchedItems}</p>
         )}

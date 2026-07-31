@@ -49,7 +49,7 @@ export function AdminDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="min-w-0 text-2xl font-bold tracking-tight md:text-3xl">{es.dashboard.title}</h1>
+        <h1 className="min-w-0 text-xl font-semibold tracking-tight">{es.dashboard.title}</h1>
         <div className="flex shrink-0 items-center gap-2">
           <Button
             variant="ghost"
