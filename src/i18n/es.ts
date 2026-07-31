@@ -9,6 +9,10 @@ export const es = {
     logout: 'Cerrar sesión',
     openMenu: 'Abrir menú de navegación',
     openUserMenu: 'Abrir menú de usuario',
+    collapse: 'Contraer barra lateral',
+    expand: 'Expandir barra lateral',
+    darkMode: 'Modo oscuro',
+    lightMode: 'Modo claro',
   },
   profile: {
     title: 'Mi perfil',
@@ -188,6 +192,8 @@ export const es = {
     noPatchedItems: 'No hubo actualizaciones en Tiendanube en el último sync.',
     previous: 'Anterior',
     new: 'Nuevo',
+    showPatchedItems: 'Ver ítems actualizados',
+    hidePatchedItems: 'Ocultar ítems actualizados',
   },
   stockChanges: {
     title: 'Cambios de stock',

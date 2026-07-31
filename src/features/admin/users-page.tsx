@@ -1,31 +1,21 @@
-import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
-import Alert from '@mui/material/Alert';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { es } from '../../i18n/es';
 import { inviteUser, listUsers } from '../../lib/admin-api-client';
 import type { AdminUser, UsersListResponse } from '../../types/admin-api';
 import { UserDetailDialog } from './components/user-detail-dialog';
-import { roleChipIcon, userStatusIcon } from './components/chip-visuals';
+import { roleBadgeVariant, roleChipIcon, userStatusIcon, userStatusVariant } from './components/chip-visuals';
 import { useAsyncData, useAuthenticatedFetch } from './hooks/use-authenticated-fetch';
 
 function statusLabel(user: AdminUser): string {
@@ -80,47 +70,36 @@ function InviteDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{es.users.inviteTitle}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-        {error ? <Alert severity="error">{error}</Alert> : null}
-        <TextField
-          label={es.users.inviteEmail}
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          size="small"
-          fullWidth
-          autoFocus
-        />
-        <TextField
-          label={es.users.inviteName}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          size="small"
-          fullWidth
-        />
-        <TextField
-          label={es.users.inviteJobRole}
-          value={jobRole}
-          onChange={(event) => setJobRole(event.target.value)}
-          size="small"
-          fullWidth
-        />
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{es.users.inviteTitle}</DialogTitle>
+        </DialogHeader>
+
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="invite-email">{es.users.inviteEmail}</Label>
+          <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="invite-name">{es.users.inviteName}</Label>
+          <Input id="invite-name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="invite-jobrole">{es.users.inviteJobRole}</Label>
+          <Input id="invite-jobrole" value={jobRole} onChange={(e) => setJobRole(e.target.value)} />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            {es.users.cancel}
+          </Button>
+          <Button disabled={busy || !email.trim()} onClick={() => void handleInvite()}>
+            {busy ? <Spinner className="text-current" /> : null}
+            {busy ? es.users.inviting : es.users.inviteSend}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={busy}>
-          {es.users.cancel}
-        </Button>
-        <Button
-          variant="contained"
-          disabled={busy || !email.trim()}
-          startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}
-          onClick={() => void handleInvite()}
-        >
-          {busy ? es.users.inviting : es.users.inviteSend}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -133,89 +112,69 @@ export function UsersPage() {
   const rows = users.data?.users ?? [];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-          {es.users.title}
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<PersonAddOutlinedIcon />}
-          onClick={() => setInviteOpen(true)}
-        >
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold tracking-tight">{es.users.title}</h1>
+        <Button onClick={() => setInviteOpen(true)}>
+          <UserPlus />
           {es.users.invite}
         </Button>
-      </Box>
+      </div>
 
-      <Card variant="outlined">
-        <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-          {users.error ? <Alert severity="error" sx={{ mb: 2 }}>{users.error}</Alert> : null}
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          {users.error ? <Alert variant="destructive" className="mb-4">{users.error}</Alert> : null}
           {users.isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={28} />
-            </Box>
+            <div className="flex justify-center py-8">
+              <Spinner className="size-7" />
+            </div>
           ) : rows.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-              {es.users.noUsers}
-            </Typography>
+            <p className="text-sm text-muted-foreground">{es.users.noUsers}</p>
           ) : (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{es.users.name}</TableCell>
-                    <TableCell>{es.users.email}</TableCell>
-                    <TableCell>{es.users.jobRole}</TableCell>
-                    <TableCell>{es.users.role}</TableCell>
-                    <TableCell>{es.users.status}</TableCell>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{es.users.name}</TableHead>
+                  <TableHead>{es.users.email}</TableHead>
+                  <TableHead>{es.users.jobRole}</TableHead>
+                  <TableHead>{es.users.role}</TableHead>
+                  <TableHead>{es.users.status}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((user) => (
+                  <TableRow key={user.email} className="cursor-pointer" onClick={() => setDetailEmail(user.email)}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-7">
+                          {user.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}
+                        </Avatar>
+                        {user.name ?? '—'}
+                      </div>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.jobRole ?? '—'}</TableCell>
+                    <TableCell>
+                      <Badge variant={roleBadgeVariant(user.role)}>
+                        {roleChipIcon(user.role)}
+                        {es.roles[user.role]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={userStatusVariant(user)}>
+                        {userStatusIcon(user)}
+                        {statusLabel(user)}
+                      </Badge>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((user) => (
-                    <TableRow
-                      key={user.email}
-                      hover
-                      sx={{ cursor: 'pointer' }}
-                      onClick={() => setDetailEmail(user.email)}
-                    >
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar src={user.avatarUrl ?? undefined} sx={{ width: 28, height: 28 }} />
-                          {user.name ?? '—'}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.jobRole ?? '—'}</TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          color={user.role === 'SUPER_ADMIN' ? 'secondary' : 'default'}
-                          icon={roleChipIcon(user.role)}
-                          label={es.roles[user.role]}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          variant="outlined"
-                          icon={userStatusIcon(user)}
-                          label={statusLabel(user)}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      <InviteDialog
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        onInvited={() => users.reload()}
-      />
+      <InviteDialog open={inviteOpen} onClose={() => setInviteOpen(false)} onInvited={() => users.reload()} />
 
       <UserDetailDialog
         email={detailEmail}
@@ -223,6 +182,6 @@ export function UsersPage() {
         onClose={() => setDetailEmail(null)}
         onChanged={() => users.reload()}
       />
-    </Box>
+    </div>
   );
 }

@@ -1,17 +1,8 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
@@ -45,18 +36,16 @@ export function PatagoniaPedidosTable({
   const isMobile = useIsMobile();
 
   return (
-    <Card variant="outlined">
-      <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-        <Typography variant="h6" gutterBottom>
-          {es.pedidos.title}
-        </Typography>
+    <Card>
+      <CardContent className="p-4 sm:p-6">
+        <h2 className="mb-4 text-base font-semibold">{es.pedidos.title}</h2>
 
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+        {error ? <Alert variant="destructive" className="mb-4">{error}</Alert> : null}
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : isMobile ? (
           <PatagoniaPedidosMobileList
             items={items}
@@ -68,75 +57,55 @@ export function PatagoniaPedidosTable({
           />
         ) : (
           <>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{es.pedidos.codigo}</TableHead>
+                  <TableHead className="text-right">
+                    <TiendanubeBrandText text={es.pedidos.tiendanubeOrderId} />
+                  </TableHead>
+                  <TableHead className="text-right">{es.pedidos.itemCount}</TableHead>
+                  <TableHead>
+                    <LabelWithTooltip label={es.pedidos.status} tooltip={es.tooltips.pedidosStatus} />
+                  </TableHead>
+                  <TableHead>
+                    <LabelWithTooltip label={es.pedidos.shippedAt} tooltip={es.tooltips.pedidosShippedAt} />
+                  </TableHead>
+                  <TableHead>{es.pedidos.createdAt}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.length === 0 ? (
                   <TableRow>
-                    <TableCell>{es.pedidos.codigo}</TableCell>
-                    <TableCell align="right">
-                      <TiendanubeBrandText text={es.pedidos.tiendanubeOrderId} />
+                    <TableCell colSpan={6} className="py-6 text-muted-foreground">
+                      {es.pedidos.noPedidos}
                     </TableCell>
-                    <TableCell align="right">{es.pedidos.itemCount}</TableCell>
-                    <TableCell>
-                      <LabelWithTooltip
-                        label={es.pedidos.status}
-                        tooltip={es.tooltips.pedidosStatus}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <LabelWithTooltip
-                        label={es.pedidos.shippedAt}
-                        tooltip={es.tooltips.pedidosShippedAt}
-                      />
-                    </TableCell>
-                    <TableCell>{es.pedidos.createdAt}</TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          {es.pedidos.noPedidos}
-                        </Typography>
+                ) : (
+                  items.map((item) => (
+                    <TableRow key={item.codigo} className="cursor-pointer" onClick={() => onRowClick(item.codigo)}>
+                      <TableCell className="font-mono text-xs">{item.codigo}</TableCell>
+                      <TableCell className="text-right">{item.tiendanubeOrderId}</TableCell>
+                      <TableCell className="text-right">{item.itemCount}</TableCell>
+                      <TableCell>
+                        <PatagoniaPedidoStatusLabel status={item.status} fulfillmentStatus={item.fulfillmentStatus} />
                       </TableCell>
+                      <TableCell>{item.shippedAt ? formatDateTime(item.shippedAt) : '—'}</TableCell>
+                      <TableCell>{formatDateTime(item.createdAt)}</TableCell>
                     </TableRow>
-                  ) : (
-                    items.map((item) => (
-                      <TableRow
-                        key={item.codigo}
-                        hover
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => onRowClick(item.codigo)}
-                      >
-                        <TableCell>{item.codigo}</TableCell>
-                        <TableCell align="right">{item.tiendanubeOrderId}</TableCell>
-                        <TableCell align="right">{item.itemCount}</TableCell>
-                        <TableCell>
-                          <PatagoniaPedidoStatusLabel
-                            status={item.status}
-                            fulfillmentStatus={item.fulfillmentStatus}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {item.shippedAt ? formatDateTime(item.shippedAt) : '—'}
-                        </TableCell>
-                        <TableCell>{formatDateTime(item.createdAt)}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  ))
+                )}
+              </TableBody>
+            </Table>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-              <Button variant="outlined" disabled={!hasPrevious} onClick={onPrevious}>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" disabled={!hasPrevious} onClick={onPrevious}>
                 {es.pedidos.previousPage}
               </Button>
-              <Button variant="outlined" disabled={!hasNext} onClick={onNext}>
+              <Button variant="outline" disabled={!hasNext} onClick={onNext}>
                 {es.pedidos.nextPage}
               </Button>
-            </Box>
+            </div>
           </>
         )}
       </CardContent>

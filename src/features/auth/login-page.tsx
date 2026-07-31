@@ -1,17 +1,13 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
-import Paper from '@mui/material/Paper';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import VisibilityIconOutlined from '@mui/icons-material/VisibilityOutlined';
-import VisibilityOffIconOutlined from '@mui/icons-material/VisibilityOffOutlined';
+import { Eye, EyeOff } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from './use-auth';
 import { es } from '../../i18n/es';
 
@@ -19,19 +15,54 @@ function getLoginErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) {
     return es.auth.signInFailed;
   }
-
-  const errorName = error.name;
-  const errorMessage = error.message;
-
-  if (errorName.includes('NotAuthorizedException') || errorMessage.includes('NotAuthorizedException')) {
+  const { name, message } = error;
+  if (name.includes('NotAuthorizedException') || message.includes('NotAuthorizedException')) {
     return es.auth.invalidCredentials;
   }
-
-  if (errorName.includes('UserNotFoundException') || errorMessage.includes('UserNotFoundException')) {
+  if (name.includes('UserNotFoundException') || message.includes('UserNotFoundException')) {
     return es.auth.userNotFound;
   }
+  return message || es.auth.signInFailed;
+}
 
-  return errorMessage || es.auth.signInFailed;
+function PasswordField({
+  id,
+  label,
+  autoComplete,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  autoComplete: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          required
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="pr-10"
+        />
+        <button
+          type="button"
+          aria-label={visible ? es.auth.hidePassword : es.auth.showPassword}
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function LoginPage() {
@@ -45,7 +76,6 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [needsNewPassword, setNeedsNewPassword] = useState(false);
@@ -54,9 +84,9 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner className="size-6" />
+      </div>
     );
   }
 
@@ -68,7 +98,6 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
     try {
       const { requiresNewPassword } = await signIn(email.trim(), password);
       if (requiresNewPassword) {
@@ -86,12 +115,10 @@ export function LoginPage() {
   const handleSetPassword = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setError(null);
-
     if (newPassword !== confirmPassword) {
       setError(es.auth.passwordsDontMatch);
       return;
     }
-
     setIsSubmitting(true);
     try {
       await completeNewPassword(newPassword);
@@ -104,131 +131,77 @@ export function LoginPage() {
   };
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        px: 2,
-      }}
-    >
-      <Paper elevation={2} sx={{ p: { xs: 2.5, sm: 4 }, width: '100%', maxWidth: 420 }}>
-        <Box
-          component="img"
-          src="/assets/unibrandco-logo-black.webp"
-          alt="Unibrandco"
-          sx={{
-            display: 'block',
-            height: 48,
-            width: 'auto',
-            mx: 'auto',
-            mb: 2,
-          }}
-        />
-        <Typography variant="h5" component="h1" gutterBottom sx={{ fontWeight: 600, textAlign: 'center' }}>
-          {needsNewPassword ? es.auth.newPasswordTitle : es.auth.title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-          {needsNewPassword ? es.auth.newPasswordSubtitle : es.auth.subtitle}
-        </Typography>
-
-        {needsNewPassword ? (
-          <Box
-            component="form"
-            onSubmit={handleSetPassword}
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
-            <TextField
-              label={es.auth.newPassword}
-              type={isPasswordVisible ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              fullWidth
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label={isPasswordVisible ? es.auth.hidePassword : es.auth.showPassword}
-                        edge="end"
-                        onClick={() => setIsPasswordVisible((visible) => !visible)}
-                        onMouseDown={(event) => event.preventDefault()}
-                      >
-                        {isPasswordVisible ? <VisibilityOffIconOutlined /> : <VisibilityIconOutlined />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <TextField
-              label={es.auth.confirmPassword}
-              type={isPasswordVisible ? 'text' : 'password'}
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              fullWidth
-            />
-
-            {error ? <Alert severity="error">{error}</Alert> : null}
-
-            <Button type="submit" variant="contained" size="large" disabled={isSubmitting} loading={isSubmitting}>
-              {isSubmitting ? es.auth.settingPassword : es.auth.setPassword}
-            </Button>
-          </Box>
-        ) : (
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        >
-          <TextField
-            label={es.auth.email}
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            fullWidth
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="p-6 sm:p-8">
+          <img
+            src="/assets/unibrandco-logo-black.webp"
+            alt="Unibrandco"
+            className="mx-auto mb-4 block h-12 w-auto dark:hidden"
           />
-          <TextField
-            label={es.auth.password}
-            type={isPasswordVisible ? 'text' : 'password'}
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            fullWidth
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label={isPasswordVisible ? es.auth.hidePassword : es.auth.showPassword}
-                      edge="end"
-                      onClick={() => setIsPasswordVisible((visible) => !visible)}
-                      onMouseDown={(event) => event.preventDefault()}
-                    >
-                      {isPasswordVisible ? <VisibilityOffIconOutlined /> : <VisibilityIconOutlined />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
+          <img
+            src="/assets/unibrandco-logo.webp"
+            alt="Unibrandco"
+            className="mx-auto mb-4 hidden h-12 w-auto dark:block"
           />
+          <h1 className="text-center text-xl font-semibold">
+            {needsNewPassword ? es.auth.newPasswordTitle : es.auth.title}
+          </h1>
+          <p className="mb-6 mt-1 text-center text-sm text-muted-foreground">
+            {needsNewPassword ? es.auth.newPasswordSubtitle : es.auth.subtitle}
+          </p>
 
-          {error ? <Alert severity="error">{error}</Alert> : null}
-
-          <Button type="submit" variant="contained" size="large" disabled={isSubmitting} loading={isSubmitting}>
-            {isSubmitting ? es.auth.signingIn : es.auth.signIn}
-          </Button>
-        </Box>
-        )}
-      </Paper>
-    </Box>
+          {needsNewPassword ? (
+            <form onSubmit={handleSetPassword} className="flex flex-col gap-4">
+              <PasswordField
+                id="new-password"
+                label={es.auth.newPassword}
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={setNewPassword}
+              />
+              <PasswordField
+                id="confirm-password"
+                label={es.auth.confirmPassword}
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+              />
+              {error ? <Alert variant="destructive">{error}</Alert> : null}
+              <Button type="submit" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner className="text-current" /> : null}
+                {isSubmitting ? es.auth.settingPassword : es.auth.setPassword}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="email">{es.auth.email}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+              <PasswordField
+                id="password"
+                label={es.auth.password}
+                autoComplete="current-password"
+                value={password}
+                onChange={setPassword}
+              />
+              {error ? <Alert variant="destructive">{error}</Alert> : null}
+              <Button type="submit" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? <Spinner className="text-current" /> : null}
+                {isSubmitting ? es.auth.signingIn : es.auth.signIn}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

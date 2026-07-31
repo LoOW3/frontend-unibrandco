@@ -1,32 +1,27 @@
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import { Bot } from 'lucide-react';
 
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { es } from '../../../i18n/es';
 import { useUsersDirectory } from '../hooks/use-users-directory';
 
 interface ActorBadgeProps {
   /** Actor email, or null for an automatic/scheduled run. */
   email: string | null | undefined;
-  size?: number;
 }
 
 /**
  * Renders who ran an action: avatar + name resolved from the users directory,
  * or a robot icon + "Automático" when there is no actor.
  */
-export function ActorBadge({ email, size = 24 }: ActorBadgeProps) {
+export function ActorBadge({ email }: ActorBadgeProps) {
   const directory = useUsersDirectory();
 
   if (!email) {
     return (
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-        <SmartToyOutlinedIcon fontSize="small" color="disabled" />
-        <Typography variant="body2" color="text.secondary">
-          {es.actor.automatic}
-        </Typography>
-      </Box>
+      <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Bot className="size-4" />
+        {es.actor.automatic}
+      </span>
     );
   }
 
@@ -34,12 +29,9 @@ export function ActorBadge({ email, size = 24 }: ActorBadgeProps) {
   const label = user?.name ?? email;
 
   return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-      <Avatar
-        src={user?.avatarUrl ?? undefined}
-        sx={{ width: size, height: size, fontSize: `${size * 0.42}px` }}
-      />
-      <Typography variant="body2">{label}</Typography>
-    </Box>
+    <span className="inline-flex items-center gap-1.5 text-sm">
+      <Avatar className="size-6">{user?.avatarUrl ? <AvatarImage src={user.avatarUrl} /> : null}</Avatar>
+      {label}
+    </span>
   );
 }

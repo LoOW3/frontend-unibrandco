@@ -1,21 +1,10 @@
-import CloseIcon from '@mui/icons-material/Close';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
+import type { ReactNode } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
@@ -35,221 +24,124 @@ function DetailMetric({
   breakWords = false,
 }: {
   label: string;
-  value: string | number;
+  value: ReactNode;
   breakWords?: boolean;
 }) {
   return (
-    <Box>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={breakWords ? { wordBreak: 'break-all' } : undefined}
-      >
-        {value}
-      </Typography>
-    </Box>
+    <div>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <p className={breakWords ? 'break-all text-sm' : 'text-sm'}>{value}</p>
+    </div>
   );
 }
 
-export function PatagoniaPedidoDetailDialog({
-  codigo,
-  open,
-  onClose,
-}: PatagoniaPedidoDetailDialogProps) {
+export function PatagoniaPedidoDetailDialog({ codigo, open, onClose }: PatagoniaPedidoDetailDialogProps) {
   const isMobile = useIsMobile();
   const { data, error, isLoading } = usePatagoniaPedidoDetail(open ? codigo : null);
 
   return (
-    <Dialog open={open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="md">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {es.pedidoDetailDialog.title}
-        <IconButton aria-label={es.pedidoDetailDialog.close} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent fullScreen={isMobile} className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{es.pedidoDetailDialog.title}</DialogTitle>
+        </DialogHeader>
 
-      <DialogContent dividers>
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : null}
-
-        {error ? <Alert severity="error">{error}</Alert> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
 
         {data ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.codigo}
-                  value={data.codigo}
-                  breakWords
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.tiendanubeOrderId}
-                  value={data.tiendanubeOrderId}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.createdAt}
-                  value={formatDateTime(data.createdAt)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.itemCount}
-                  value={data.itemCount}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {es.pedidoDetailDialog.status}
-                  </Typography>
-                  <Typography variant="body2">
-                    <PatagoniaPedidoStatusLabel
-                      status={data.status}
-                      fulfillmentStatus={data.fulfillmentStatus}
-                    />
-                  </Typography>
-                </Box>
-              </Grid>
+          <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DetailMetric label={es.pedidoDetailDialog.codigo} value={data.codigo} breakWords />
+              <DetailMetric label={es.pedidoDetailDialog.tiendanubeOrderId} value={data.tiendanubeOrderId} />
+              <DetailMetric label={es.pedidoDetailDialog.createdAt} value={formatDateTime(data.createdAt)} />
+              <DetailMetric label={es.pedidoDetailDialog.itemCount} value={data.itemCount} />
+              <DetailMetric
+                label={es.pedidoDetailDialog.status}
+                value={<PatagoniaPedidoStatusLabel status={data.status} fulfillmentStatus={data.fulfillmentStatus} />}
+              />
               {data.fulfillmentStatus ? (
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <DetailMetric
-                    label={es.pedidoDetailDialog.fulfillmentStatus}
-                    value={formatPatagoniaPedidoFulfillmentStatus(data.fulfillmentStatus)}
-                  />
-                </Grid>
+                <DetailMetric label={es.pedidoDetailDialog.fulfillmentStatus} value={formatPatagoniaPedidoFulfillmentStatus(data.fulfillmentStatus)} />
               ) : null}
               {data.shippedAt ? (
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <DetailMetric
-                    label={es.pedidoDetailDialog.shippedAt}
-                    value={formatDateTime(data.shippedAt)}
-                  />
-                </Grid>
+                <DetailMetric label={es.pedidoDetailDialog.shippedAt} value={formatDateTime(data.shippedAt)} />
               ) : null}
-            </Grid>
+            </div>
 
-            <Divider />
-            <Typography variant="subtitle1">
+            <Separator />
+            <p className="text-sm font-semibold">
               <TiendanubeBrandText text={es.pedidoDetailDialog.tiendanubeSummary} />
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.customerName}
-                  value={data.summary.userData.name}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.customerEmail}
-                  value={data.summary.userData.email}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.customerPhone}
-                  value={data.summary.userData.phone}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.customerAddress}
-                  value={data.summary.userData.address}
-                />
-              </Grid>
-            </Grid>
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DetailMetric label={es.pedidoDetailDialog.customerName} value={data.summary.userData.name} />
+              <DetailMetric label={es.pedidoDetailDialog.customerEmail} value={data.summary.userData.email} />
+              <DetailMetric label={es.pedidoDetailDialog.customerPhone} value={data.summary.userData.phone} />
+              <div className="sm:col-span-2">
+                <DetailMetric label={es.pedidoDetailDialog.customerAddress} value={data.summary.userData.address} />
+              </div>
+            </div>
 
-            <Typography variant="subtitle2">{es.pedidoDetailDialog.products}</Typography>
-            <TableContainer sx={{ maxHeight: 240, overflowX: 'auto' }}>
-              <Table size="small" stickyHeader sx={{ minWidth: 360 }}>
-                <TableHead>
+            <p className="text-sm font-medium">{es.pedidoDetailDialog.products}</p>
+            <div className="max-h-60 overflow-auto rounded-md border border-border">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card">
                   <TableRow>
-                    <TableCell>{es.pedidoDetailDialog.sku}</TableCell>
-                    <TableCell align="right">{es.pedidoDetailDialog.quantity}</TableCell>
-                    <TableCell>{es.pedidoDetailDialog.variantId}</TableCell>
+                    <TableHead>{es.pedidoDetailDialog.sku}</TableHead>
+                    <TableHead className="text-right">{es.pedidoDetailDialog.quantity}</TableHead>
+                    <TableHead>{es.pedidoDetailDialog.variantId}</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {data.summary.products.map((product) => (
                     <TableRow key={`${product.id}-${product.variant_id}`}>
-                      <TableCell>{product.sku ?? '—'}</TableCell>
-                      <TableCell align="right">{product.quantity}</TableCell>
+                      <TableCell className="font-mono text-xs">{product.sku ?? '—'}</TableCell>
+                      <TableCell className="text-right">{product.quantity}</TableCell>
                       <TableCell>{product.variant_id}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
 
-            <Divider />
-            <Typography variant="subtitle1">{es.pedidoDetailDialog.digipWms}</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.codigo}
-                  value={data.createPedido.codigo}
-                  breakWords
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.fecha}
-                  value={data.createPedido.fecha}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.estado}
-                  value={data.createPedido.estado}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.pedidoDetailDialog.clienteUbicacionCodigo}
-                  value={data.createPedido.clienteUbicacionCodigo}
-                />
-              </Grid>
+            <Separator />
+            <p className="text-sm font-semibold">{es.pedidoDetailDialog.digipWms}</p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DetailMetric label={es.pedidoDetailDialog.codigo} value={data.createPedido.codigo} breakWords />
+              <DetailMetric label={es.pedidoDetailDialog.fecha} value={data.createPedido.fecha} />
+              <DetailMetric label={es.pedidoDetailDialog.estado} value={data.createPedido.estado} />
+              <DetailMetric label={es.pedidoDetailDialog.clienteUbicacionCodigo} value={data.createPedido.clienteUbicacionCodigo} />
               {data.createPedido.observacion ? (
-                <Grid size={{ xs: 12 }}>
-                  <DetailMetric
-                    label={es.pedidoDetailDialog.observacion}
-                    value={data.createPedido.observacion}
-                  />
-                </Grid>
+                <div className="sm:col-span-2">
+                  <DetailMetric label={es.pedidoDetailDialog.observacion} value={data.createPedido.observacion} />
+                </div>
               ) : null}
-            </Grid>
+            </div>
 
-            <TableContainer sx={{ maxHeight: 240, overflowX: 'auto' }}>
-              <Table size="small" stickyHeader sx={{ minWidth: 360 }}>
-                <TableHead>
+            <div className="max-h-60 overflow-auto rounded-md border border-border">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card">
                   <TableRow>
-                    <TableCell>{es.pedidoDetailDialog.linea}</TableCell>
-                    <TableCell>{es.pedidoDetailDialog.articuloCodigo}</TableCell>
-                    <TableCell align="right">{es.pedidoDetailDialog.unidades}</TableCell>
+                    <TableHead>{es.pedidoDetailDialog.linea}</TableHead>
+                    <TableHead>{es.pedidoDetailDialog.articuloCodigo}</TableHead>
+                    <TableHead className="text-right">{es.pedidoDetailDialog.unidades}</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {data.createPedido.items.map((item) => (
                     <TableRow key={item.linea}>
                       <TableCell>{item.linea}</TableCell>
-                      <TableCell>{item.articuloCodigo}</TableCell>
-                      <TableCell align="right">{item.unidades}</TableCell>
+                      <TableCell className="font-mono text-xs">{item.articuloCodigo}</TableCell>
+                      <TableCell className="text-right">{item.unidades}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
-          </Box>
+            </div>
+          </div>
         ) : null}
       </DialogContent>
     </Dialog>

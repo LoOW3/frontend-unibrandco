@@ -1,27 +1,13 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/cn';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
-import type {
-  ManualSyncManifest,
-  ManualSyncRunSummary,
-  ManualSyncStatus,
-} from '../../../types/admin-api';
+import type { ManualSyncManifest, ManualSyncRunSummary, ManualSyncStatus } from '../../../types/admin-api';
 import { ActorBadge } from './actor-badge';
 import { manualSyncStatusChip } from './manual-sync-run-detail';
 
@@ -53,117 +39,101 @@ export function ManualSyncRunsTable({
   const isMobile = useIsMobile();
 
   /** Live status/progress for a row when it matches the polled active run. */
-  const liveFor = (
-    run: ManualSyncRunSummary,
-  ): { status: ManualSyncStatus; progress: number } =>
+  const liveFor = (run: ManualSyncRunSummary): { status: ManualSyncStatus; progress: number } =>
     liveManifest && liveManifest.runId === run.runId
       ? { status: liveManifest.status, progress: liveManifest.progress }
       : { status: run.status, progress: run.progress };
 
   return (
-    <Card variant="outlined">
-      <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-        <Typography variant="h6" gutterBottom>
-          {es.manualSync.runsFor(date)}
-        </Typography>
+    <Card>
+      <CardContent className="p-4 sm:p-6">
+        <h2 className="mb-4 text-base font-semibold">{es.manualSync.runsFor(date)}</h2>
 
         {error ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert variant="destructive" className="mb-4">
             {error}
           </Alert>
         ) : null}
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : runs.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            {es.manualSync.noRuns}
-          </Typography>
+          <p className="text-sm text-muted-foreground">{es.manualSync.noRuns}</p>
         ) : isMobile ? (
-          <Stack spacing={1}>
+          <div className="flex flex-col gap-2">
             {runs.map((run) => {
               const live = liveFor(run);
               const chip = manualSyncStatusChip(live.status);
               return (
                 <Card
                   key={run.runId}
-                  variant="outlined"
-                  sx={{
-                    borderColor: run.runId === selectedRunId ? 'primary.main' : undefined,
-                  }}
+                  className={cn(run.runId === selectedRunId && 'border-primary')}
                 >
-                  <CardActionArea onClick={() => onSelect(run.runId)} sx={{ p: 1.5 }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Typography variant="subtitle2">{runLabel(run.runId)}</Typography>
-                      <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
-                    </Box>
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDateTime(run.startedAt)} · {live.progress}%
-                    </Typography>
-                  </CardActionArea>
+                  <CardContent className="py-3">
+                    <button type="button" onClick={() => onSelect(run.runId)} className="w-full text-left">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{runLabel(run.runId)}</span>
+                        <Badge variant={chip.variant}>
+                          {chip.icon}
+                          {chip.label}
+                        </Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatDateTime(run.startedAt)} · {live.progress}%
+                      </p>
+                    </button>
+                  </CardContent>
                 </Card>
               );
             })}
-          </Stack>
+          </div>
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{es.manualSync.run}</TableCell>
-                  <TableCell>{es.manualSync.status}</TableCell>
-                  <TableCell>{es.manualSync.startedAt}</TableCell>
-                  <TableCell>{es.manualSync.triggeredBy}</TableCell>
-                  <TableCell align="right">{es.manualSync.progress}</TableCell>
-                  <TableCell align="right">{es.manualSync.countPatched}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {runs.map((run) => {
-                  const live = liveFor(run);
-                  const chip = manualSyncStatusChip(live.status);
-                  return (
-                    <TableRow
-                      key={run.runId}
-                      hover
-                      selected={run.runId === selectedRunId}
-                      onClick={() => onSelect(run.runId)}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      <TableCell>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{es.manualSync.run}</TableHead>
+                <TableHead>{es.manualSync.status}</TableHead>
+                <TableHead>{es.manualSync.startedAt}</TableHead>
+                <TableHead>{es.manualSync.triggeredBy}</TableHead>
+                <TableHead className="text-right">{es.manualSync.progress}</TableHead>
+                <TableHead className="text-right">{es.manualSync.countPatched}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {runs.map((run) => {
+                const live = liveFor(run);
+                const chip = manualSyncStatusChip(live.status);
+                return (
+                  <TableRow
+                    key={run.runId}
+                    onClick={() => onSelect(run.runId)}
+                    className={cn('cursor-pointer', run.runId === selectedRunId && 'bg-accent')}
+                  >
+                    <TableCell>
+                      <span className="inline-flex items-center gap-2">
                         {runLabel(run.runId)}
-                        {run.dryRun ? (
-                          <Chip
-                            size="small"
-                            variant="outlined"
-                            label={es.manualSync.dryRunTag}
-                            sx={{ ml: 1 }}
-                          />
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        <Chip size="small" color={chip.color} label={chip.label} icon={chip.icon} />
-                      </TableCell>
-                      <TableCell>{formatDateTime(run.startedAt)}</TableCell>
-                      <TableCell>
-                        <ActorBadge email={run.triggeredBy} />
-                      </TableCell>
-                      <TableCell align="right">{live.progress}%</TableCell>
-                      <TableCell align="right">{run.counts.patched ?? '—'}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        {run.dryRun ? <Badge variant="outline">{es.manualSync.dryRunTag}</Badge> : null}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={chip.variant}>
+                        {chip.icon}
+                        {chip.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatDateTime(run.startedAt)}</TableCell>
+                    <TableCell>
+                      <ActorBadge email={run.triggeredBy} />
+                    </TableCell>
+                    <TableCell className="text-right">{live.progress}%</TableCell>
+                    <TableCell className="text-right">{run.counts.patched ?? '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>

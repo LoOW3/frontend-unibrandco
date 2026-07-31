@@ -1,25 +1,28 @@
+import { fileURLToPath, URL } from 'node:url'
+
 import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    babel({ presets: [reactCompilerPreset()] })
+    babel({ presets: [reactCompilerPreset()] }),
+    tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (
-            id.includes('node_modules/@mui/x-date-pickers') ||
-            id.includes('node_modules/dayjs')
-          ) {
+          if (id.includes('node_modules/dayjs')) {
             return 'vendor-date';
-          }
-          if (id.includes('node_modules/@mui/') || id.includes('node_modules/@emotion/')) {
-            return 'vendor-mui';
           }
           if (id.includes('node_modules/aws-amplify')) {
             return 'vendor-amplify';
