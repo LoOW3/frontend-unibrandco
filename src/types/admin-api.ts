@@ -276,3 +276,115 @@ export interface PatagoniaPedidoRecord {
 export type PatagoniaPedidoRecordResponse = PatagoniaPedidoRecord & {
   status: PatagoniaPedidoStatus;
 };
+
+// ---------------------------------------------------------------------------
+// Gold schema (datos finales limpiados — TABLERO / pipeline bronze→gold).
+// Served by the admin API under /admin/gold/* (backend to be implemented).
+// ---------------------------------------------------------------------------
+
+export type GoldCanal = 'Mayorista' | 'Mercado Libre' | 'Tienda Nube';
+
+export type ClienteCategoria = 'A' | 'B1' | 'B2' | 'C';
+
+/** One sales line from gold.fact_ventas. */
+export interface GoldVenta {
+  canal: GoldCanal | string;
+  unidad: string | null;
+  tipo: string | null;
+  nroOrden: string;
+  fecha: string;
+  mesComercial: string;
+  sku: string;
+  producto: string | null;
+  cantidad: number;
+  precioUnitario: number;
+  precioNeto: number;
+  costoUnitario: number | null;
+  comision: number;
+  envio: number;
+  margenTotal: number;
+  marca: string | null;
+  cliente: string | null;
+}
+
+export interface PaginatedGoldVentasResponse {
+  items: GoldVenta[];
+  nextCursor: string | null;
+}
+
+export interface ListGoldVentasParams {
+  limit?: number;
+  cursor?: string | null;
+  canal?: string;
+  mes?: string;
+  marca?: string;
+}
+
+/** One row from gold.clientes_clasificados. */
+export interface GoldClienteClasificado {
+  clienteId: string;
+  nombre: string | null;
+  rubro: string | null;
+  provincia: string | null;
+  localidad: string | null;
+  zona: string | null;
+  email: string | null;
+  promedioMensual3m: number;
+  mesesConCompra3m: number;
+  montoTotal3m: number;
+  compraFacturado: boolean;
+  compraNoFacturado: boolean;
+  categoria: ClienteCategoria | string;
+}
+
+export interface PaginatedGoldClientesResponse {
+  items: GoldClienteClasificado[];
+  nextCursor: string | null;
+}
+
+export interface ListGoldClientesParams {
+  limit?: number;
+  cursor?: string | null;
+  categoria?: string;
+}
+
+/** One row from gold.fact_ventas_flete. */
+export interface GoldFleteLinea {
+  nroOrden: string;
+  sku: string;
+  claveFila: string;
+  fleteProrrateado: number;
+  tieneFleteReal: boolean;
+  fechaCalculo: string;
+}
+
+export interface PaginatedGoldFletesResponse {
+  items: GoldFleteLinea[];
+  nextCursor: string | null;
+}
+
+export interface ListGoldFletesParams {
+  limit?: number;
+  cursor?: string | null;
+}
+
+export interface GoldNamedTotal {
+  label: string;
+  total: number;
+}
+
+/** Aggregated KPIs for the dashboard summary tab. */
+export interface GoldSummary {
+  ventasTotales: number;
+  margenTotal: number;
+  unidadesTotales: number;
+  ventasPorCanal: GoldNamedTotal[];
+  ventasPorMes: GoldNamedTotal[];
+  topMarcas: GoldNamedTotal[];
+  topClientes: GoldNamedTotal[];
+}
+
+export interface GetGoldSummaryParams {
+  mes?: string;
+  canal?: string;
+}
