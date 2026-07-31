@@ -1,17 +1,9 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime, formatFileSize } from '../../../lib/format';
@@ -31,65 +23,53 @@ export function StockFilesTable({ files, date, error, isLoading }: StockFilesTab
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   return (
-    <Card variant="outlined">
-      <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-        <Typography variant="h6" gutterBottom>
-          {es.stockFiles.snapshotsFor(date)}
-        </Typography>
+    <Card>
+      <CardContent className="p-4 sm:p-6">
+        <h2 className="mb-4 text-base font-semibold">{es.stockFiles.snapshotsFor(date)}</h2>
 
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-        {downloadError ? (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDownloadError(null)}>
-            {downloadError}
-          </Alert>
-        ) : null}
+        {error ? <Alert variant="destructive" className="mb-4">{error}</Alert> : null}
+        {downloadError ? <Alert variant="destructive" className="mb-4">{downloadError}</Alert> : null}
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : isMobile ? (
           <StockFilesMobileList files={files} onDownloadError={setDownloadError} />
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{es.stockFiles.syncedAt}</TableHead>
+                <TableHead>{es.stockFiles.s3Key}</TableHead>
+                <TableHead className="text-right">{es.stockFiles.size}</TableHead>
+                <TableHead className="text-center">{es.stockFiles.download}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {files.length === 0 ? (
                 <TableRow>
-                  <TableCell>{es.stockFiles.syncedAt}</TableCell>
-                  <TableCell>{es.stockFiles.s3Key}</TableCell>
-                  <TableCell align="right">{es.stockFiles.size}</TableCell>
-                  <TableCell align="center">{es.stockFiles.download}</TableCell>
+                  <TableCell colSpan={4} className="py-6 text-muted-foreground">
+                    {es.stockFiles.noFiles}
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {files.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4}>
-                      <Typography variant="body2" color="text.secondary">
-                        {es.stockFiles.noFiles}
-                      </Typography>
+              ) : (
+                files.map((file) => (
+                  <TableRow key={file.s3Key}>
+                    <TableCell>{formatDateTime(file.syncedAt)}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{file.s3Key}</TableCell>
+                    <TableCell className="text-right">{formatFileSize(file.sizeBytes)}</TableCell>
+                    <TableCell className="text-center">
+                      <StockFileDownloadButton syncKey={file.s3Key} onError={setDownloadError} />
                     </TableCell>
                   </TableRow>
-                ) : (
-                  files.map((file) => (
-                    <TableRow key={file.s3Key}>
-                      <TableCell>{formatDateTime(file.syncedAt)}</TableCell>
-                      <TableCell>{file.s3Key}</TableCell>
-                      <TableCell align="right">{formatFileSize(file.sizeBytes)}</TableCell>
-                      <TableCell align="center">
-                        <StockFileDownloadButton
-                          syncKey={file.s3Key}
-                          onError={setDownloadError}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                ))
+              )}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
   );
 }
+</content>

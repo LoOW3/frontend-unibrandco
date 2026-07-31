@@ -1,24 +1,12 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-
+import { Alert } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
-import { useIsMobile } from '../../../hooks/use-is-mobile';
 import { es } from '../../../i18n/es';
 import { formatDateTime } from '../../../lib/format';
-import type { AdminDashboardResponse, TiendanubePatchedItem } from '../../../types/admin-api';
+import type { AdminDashboardResponse } from '../../../types/admin-api';
 import { ActorBadge } from './actor-badge';
 
 interface LastSyncMetricsProps {
@@ -39,166 +27,92 @@ function MetricItem({
   breakWords?: boolean;
 }) {
   return (
-    <Box>
+    <div>
       {tooltip ? (
         <LabelWithTooltip label={label} tooltip={tooltip} />
       ) : (
-        <Typography variant="caption" color="text.secondary">
-          {label}
-        </Typography>
+        <span className="text-xs text-muted-foreground">{label}</span>
       )}
-      <Typography
-        variant="body1"
-        sx={{
-          fontWeight: 600,
-          ...(breakWords ? { wordBreak: 'break-all', fontSize: '0.875rem' } : {}),
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-}
-
-function PatchedItemsMobileList({ items }: { items: TiendanubePatchedItem[] }) {
-  return (
-    <Stack spacing={1}>
-      {items.map((item) => (
-        <Card key={item.sku} variant="outlined">
-          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {item.sku}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {es.metrics.previous}: {item.previousStock ?? '—'} · {es.metrics.new}: {item.newStock}
-            </Typography>
-          </CardContent>
-        </Card>
-      ))}
-    </Stack>
+      <p className={breakWords ? 'break-all text-sm font-semibold' : 'font-semibold'}>{value}</p>
+    </div>
   );
 }
 
 export function LastSyncMetrics({ data, error, isLoading }: LastSyncMetricsProps) {
-  const isMobile = useIsMobile();
-
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress size={28} />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Spinner className="size-7" />
+      </div>
     );
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <Alert variant="destructive">{error}</Alert>;
   }
 
   const lastSync = data?.lastTiendanubeSync;
 
   if (!lastSync) {
     return (
-      <Alert severity="info">
+      <Alert variant="info">
         <TiendanubeBrandText text={es.metrics.noSyncYet} />
       </Alert>
     );
   }
 
   return (
-    <Card variant="outlined">
-      <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
-        <Box sx={{ mb: 2 }}>
+    <Card>
+      <CardContent className="p-4 sm:p-6">
+        <div className="mb-4 text-base font-semibold">
           <LabelWithTooltip
             label={es.metrics.lastTiendanubeSync}
             tooltip={es.tooltips.lastTiendanubeSync}
-            variant="h6"
-            color="text.primary"
+            className="border-none text-base text-foreground"
           />
-        </Box>
+        </div>
 
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
-              label={es.metrics.syncKey}
-              tooltip={es.tooltips.syncKey}
-              value={lastSync.syncKey}
-              breakWords
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
-              label={es.metrics.syncedAtUtc}
-              tooltip={es.tooltips.syncedAtUtc}
-              value={formatDateTime(lastSync.syncedAt)}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
-              label={es.metrics.patchedAtUtc}
-              tooltip={es.tooltips.patchedAtUtc}
-              value={formatDateTime(lastSync.patchedAt)}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <MetricItem
-              label={es.metrics.patchedSkus}
-              tooltip={es.tooltips.patchedSkus}
-              value={lastSync.patchedCount}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="caption" color="text.secondary">
-              {es.manualSync.triggeredBy}
-            </Typography>
-            <Box sx={{ mt: 0.5 }}>
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <MetricItem label={es.metrics.syncKey} tooltip={es.tooltips.syncKey} value={lastSync.syncKey} breakWords />
+          <MetricItem label={es.metrics.syncedAtUtc} tooltip={es.tooltips.syncedAtUtc} value={formatDateTime(lastSync.syncedAt)} />
+          <MetricItem label={es.metrics.patchedAtUtc} tooltip={es.tooltips.patchedAtUtc} value={formatDateTime(lastSync.patchedAt)} />
+          <MetricItem label={es.metrics.patchedSkus} tooltip={es.tooltips.patchedSkus} value={lastSync.patchedCount} />
+          <div>
+            <span className="text-xs text-muted-foreground">{es.manualSync.triggeredBy}</span>
+            <div className="mt-1">
               <ActorBadge email={lastSync.triggeredBy ?? null} />
-            </Box>
-          </Grid>
-        </Grid>
+            </div>
+          </div>
+        </div>
 
         {lastSync.patchedItems.length > 0 ? (
-          isMobile ? (
-            <PatchedItemsMobileList items={lastSync.patchedItems} />
-          ) : (
-            <TableContainer sx={{ overflowX: 'auto' }}>
-              <Table size="small" sx={{ minWidth: 400 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{es.metrics.sku}</TableCell>
-                    <TableCell align="right">
-                      <LabelWithTooltip
-                        label={es.metrics.previousStock}
-                        tooltip={es.tooltips.previousStock}
-                        align="right"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <LabelWithTooltip
-                        label={es.metrics.newStock}
-                        tooltip={es.tooltips.newStock}
-                        align="right"
-                      />
-                    </TableCell>
-                  </TableRow>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{es.metrics.sku}</TableHead>
+                <TableHead className="text-right">
+                  <LabelWithTooltip label={es.metrics.previousStock} tooltip={es.tooltips.previousStock} align="right" />
                 </TableHead>
-                <TableBody>
-                  {lastSync.patchedItems.map((item) => (
-                    <TableRow key={item.sku}>
-                      <TableCell>{item.sku}</TableCell>
-                      <TableCell align="right">{item.previousStock ?? '—'}</TableCell>
-                      <TableCell align="right">{item.newStock}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )
+                <TableHead className="text-right">
+                  <LabelWithTooltip label={es.metrics.newStock} tooltip={es.tooltips.newStock} align="right" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lastSync.patchedItems.map((item) => (
+                <TableRow key={item.sku}>
+                  <TableCell className="font-mono text-xs">{item.sku}</TableCell>
+                  <TableCell className="text-right">{item.previousStock ?? '—'}</TableCell>
+                  <TableCell className="text-right">{item.newStock}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
-          <Typography variant="body2" color="text.secondary">
-            {es.metrics.noPatchedItems}
-          </Typography>
+          <p className="text-sm text-muted-foreground">{es.metrics.noPatchedItems}</p>
         )}
       </CardContent>
     </Card>
   );
 }
+</content>

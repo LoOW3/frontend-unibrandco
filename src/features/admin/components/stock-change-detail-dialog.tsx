@@ -1,21 +1,8 @@
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Divider from '@mui/material/Divider';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
-
+import { Alert } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { TiendanubeBrandText } from '../../../components/tiendanube-brand';
 import { useIsMobile } from '../../../hooks/use-is-mobile';
@@ -42,230 +29,144 @@ function DetailMetric({
   breakWords?: boolean;
 }) {
   return (
-    <Box>
+    <div>
       {tooltip ? (
         <LabelWithTooltip label={label} tooltip={tooltip} />
       ) : (
-        <Typography variant="caption" color="text.secondary">
-          {label}
-        </Typography>
+        <span className="text-xs text-muted-foreground">{label}</span>
       )}
-      <Typography
-        variant="body2"
-        sx={breakWords ? { wordBreak: 'break-all' } : undefined}
-      >
-        {value}
-      </Typography>
-    </Box>
+      <p className={breakWords ? 'break-all text-sm' : 'text-sm'}>{value}</p>
+    </div>
   );
 }
 
 function getItemFlag(item: { new?: boolean; deleted?: boolean }): string {
-  if (item.new) {
-    return es.detailDialog.flagNew;
-  }
-  if (item.deleted) {
-    return es.detailDialog.flagDeleted;
-  }
+  if (item.new) return es.detailDialog.flagNew;
+  if (item.deleted) return es.detailDialog.flagDeleted;
   return es.detailDialog.flagChanged;
 }
 
-export function StockChangeDetailDialog({
-  syncKey,
-  open,
-  onClose,
-}: StockChangeDetailDialogProps) {
+export function StockChangeDetailDialog({ syncKey, open, onClose }: StockChangeDetailDialogProps) {
   const isMobile = useIsMobile();
   const { data, error, isLoading } = useStockChangeDetail(open ? syncKey : null);
 
   return (
-    <Dialog open={open} onClose={onClose} fullScreen={isMobile} fullWidth maxWidth="md">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {es.detailDialog.title}
-        <IconButton aria-label={es.detailDialog.close} onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent fullScreen={isMobile} className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{es.detailDialog.title}</DialogTitle>
+        </DialogHeader>
 
-      <DialogContent dividers>
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Spinner className="size-7" />
+          </div>
         ) : null}
-
-        {error ? <Alert severity="error">{error}</Alert> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
 
         {data ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.detailDialog.currentSyncKey}
-                  value={data.currentSyncKey}
-                  breakWords
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <DetailMetric
-                  label={es.detailDialog.previousSyncKey}
-                  value={data.previousSyncKey}
-                  breakWords
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <DetailMetric
-                  label={es.detailDialog.syncedAt}
-                  value={formatDateTime(data.syncedAt)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <DetailMetric
-                  label={es.detailDialog.changedCount}
-                  tooltip={es.tooltips.changedCount}
-                  value={data.changedCount}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <DetailMetric
-                  label={es.detailDialog.createdAt}
-                  value={formatDateTime(data.createdAt)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {es.manualSync.triggeredBy}
-                </Typography>
-                <Box sx={{ mt: 0.5 }}>
+          <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div className="col-span-2 sm:col-span-3">
+                <DetailMetric label={es.detailDialog.currentSyncKey} value={data.currentSyncKey} breakWords />
+              </div>
+              <div className="col-span-2 sm:col-span-3">
+                <DetailMetric label={es.detailDialog.previousSyncKey} value={data.previousSyncKey} breakWords />
+              </div>
+              <DetailMetric label={es.detailDialog.syncedAt} value={formatDateTime(data.syncedAt)} />
+              <DetailMetric label={es.detailDialog.changedCount} tooltip={es.tooltips.changedCount} value={data.changedCount} />
+              <DetailMetric label={es.detailDialog.createdAt} value={formatDateTime(data.createdAt)} />
+              <div>
+                <span className="text-xs text-muted-foreground">{es.manualSync.triggeredBy}</span>
+                <div className="mt-1">
                   <ActorBadge email={data.triggeredBy ?? null} />
-                </Box>
-              </Grid>
-            </Grid>
+                </div>
+              </div>
+            </div>
 
             {data.tiendanubeSync ? (
               <>
-                <Divider />
-                <Typography variant="subtitle1">
+                <Separator />
+                <p className="text-sm font-semibold">
                   <TiendanubeBrandText text={es.detailDialog.tiendanubeSync} />
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <DetailMetric
-                      label={es.detailDialog.patchedAt}
-                      tooltip={es.tooltips.patchedAt}
-                      value={formatDateTime(data.tiendanubeSync.patchedAt)}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <DetailMetric
-                      label={es.detailDialog.patched}
-                      tooltip={es.tooltips.patched}
-                      value={data.tiendanubeSync.patchedCount}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <DetailMetric
-                      label={es.detailDialog.matched}
-                      tooltip={es.tooltips.matched}
-                      value={data.tiendanubeSync.matchedCount}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <DetailMetric
-                      label={es.detailDialog.skippedDeleted}
-                      tooltip={es.tooltips.skippedDeleted}
-                      value={data.tiendanubeSync.skippedDeleted}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <DetailMetric
-                      label={es.detailDialog.skippedNoSku}
-                      tooltip={es.tooltips.skippedNoSku}
-                      value={data.tiendanubeSync.skippedNoSku}
-                    />
-                  </Grid>
-                </Grid>
+                </p>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <DetailMetric label={es.detailDialog.patchedAt} tooltip={es.tooltips.patchedAt} value={formatDateTime(data.tiendanubeSync.patchedAt)} />
+                  <DetailMetric label={es.detailDialog.patched} tooltip={es.tooltips.patched} value={data.tiendanubeSync.patchedCount} />
+                  <DetailMetric label={es.detailDialog.matched} tooltip={es.tooltips.matched} value={data.tiendanubeSync.matchedCount} />
+                  <DetailMetric label={es.detailDialog.skippedDeleted} tooltip={es.tooltips.skippedDeleted} value={data.tiendanubeSync.skippedDeleted} />
+                  <DetailMetric label={es.detailDialog.skippedNoSku} tooltip={es.tooltips.skippedNoSku} value={data.tiendanubeSync.skippedNoSku} />
+                </div>
               </>
             ) : null}
 
-            <Divider />
+            <Separator />
             <LabelWithTooltip
               label={es.detailDialog.changedItems}
               tooltip={es.tooltips.changedItems}
-              variant="subtitle1"
-              color="text.primary"
+              className="border-none text-sm font-semibold text-foreground"
             />
-            <TableContainer sx={{ maxHeight: 280, overflowX: 'auto' }}>
-              <Table size="small" stickyHeader sx={{ minWidth: 480 }}>
-                <TableHead>
+            <div className="max-h-72 overflow-auto rounded-md border border-border">
+              <Table>
+                <TableHeader className="sticky top-0 bg-card">
                   <TableRow>
-                    <TableCell>{es.detailDialog.article}</TableCell>
-                    <TableCell align="right">{es.detailDialog.available}</TableCell>
-                    <TableCell align="right">{es.detailDialog.previous}</TableCell>
-                    <TableCell>{es.detailDialog.flags}</TableCell>
+                    <TableHead>{es.detailDialog.article}</TableHead>
+                    <TableHead className="text-right">{es.detailDialog.available}</TableHead>
+                    <TableHead className="text-right">{es.detailDialog.previous}</TableHead>
+                    <TableHead>{es.detailDialog.flags}</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {data.changedItems.map((item) => (
                     <TableRow key={item.CodigoArticulo}>
-                      <TableCell>{item.CodigoArticulo}</TableCell>
-                      <TableCell align="right">{item.UnidadesDisponibles}</TableCell>
-                      <TableCell align="right">
-                        {item.previousUnidadesDisponibles ?? '—'}
-                      </TableCell>
-                      <TableCell>{getItemFlag(item)}</TableCell>
+                      <TableCell className="font-mono text-xs">{item.CodigoArticulo}</TableCell>
+                      <TableCell className="text-right">{item.UnidadesDisponibles}</TableCell>
+                      <TableCell className="text-right">{item.previousUnidadesDisponibles ?? '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{getItemFlag(item)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
 
             {data.tiendanubeSync?.patchedItems.length ? (
               <>
-                <Divider />
+                <Separator />
                 <LabelWithTooltip
                   label={es.detailDialog.patchedItems}
                   tooltip={es.tooltips.patchedItems}
-                  variant="subtitle1"
-                  color="text.primary"
+                  className="border-none text-sm font-semibold text-foreground"
                 />
-                <TableContainer sx={{ maxHeight: 240, overflowX: 'auto' }}>
-                  <Table size="small" stickyHeader sx={{ minWidth: 360 }}>
-                    <TableHead>
+                <div className="max-h-60 overflow-auto rounded-md border border-border">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-card">
                       <TableRow>
-                        <TableCell>{es.metrics.sku}</TableCell>
-                        <TableCell align="right">
-                          <LabelWithTooltip
-                            label={es.metrics.previousStock}
-                            tooltip={es.tooltips.previousStock}
-                            align="right"
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <LabelWithTooltip
-                            label={es.metrics.newStock}
-                            tooltip={es.tooltips.newStock}
-                            align="right"
-                          />
-                        </TableCell>
+                        <TableHead>{es.metrics.sku}</TableHead>
+                        <TableHead className="text-right">
+                          <LabelWithTooltip label={es.metrics.previousStock} tooltip={es.tooltips.previousStock} align="right" />
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <LabelWithTooltip label={es.metrics.newStock} tooltip={es.tooltips.newStock} align="right" />
+                        </TableHead>
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {data.tiendanubeSync.patchedItems.map((item) => (
                         <TableRow key={item.sku}>
-                          <TableCell>{item.sku}</TableCell>
-                          <TableCell align="right">{item.previousStock ?? '—'}</TableCell>
-                          <TableCell align="right">{item.newStock}</TableCell>
+                          <TableCell className="font-mono text-xs">{item.sku}</TableCell>
+                          <TableCell className="text-right">{item.previousStock ?? '—'}</TableCell>
+                          <TableCell className="text-right">{item.newStock}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                </TableContainer>
+                </div>
               </>
             ) : null}
-          </Box>
+          </div>
         ) : null}
       </DialogContent>
     </Dialog>
   );
 }
+</content>

@@ -8,7 +8,8 @@ function systemPrefersDark(): boolean {
 
 function readStoredTheme(): Theme {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+  // Default to light; only honor an explicit stored preference.
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'light';
 }
 
 function applyTheme(resolved: 'light' | 'dark'): void {

@@ -1,14 +1,9 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { esES } from '@mui/x-date-pickers/locales';
 import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import 'dayjs/locale/es';
+import { useCallback, useMemo, useState } from 'react';
 
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
 import { listStockFiles } from '../../lib/admin-api-client';
 import type { StockFilesResponse } from '../../types/admin-api';
 import { StockFilesTable } from './components/stock-files-table';
@@ -21,19 +16,7 @@ function getUtcDateString(value: Dayjs): string {
   return value.utc().format('YYYY-MM-DD');
 }
 
-function StockFilesDateProvider({ children }: { children: ReactNode }) {
-  return (
-    <LocalizationProvider
-      dateAdapter={AdapterDayjs}
-      adapterLocale="es"
-      localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}
-    >
-      {children}
-    </LocalizationProvider>
-  );
-}
-
-function StockFilesPageContent() {
+export function StockFilesPage() {
   const maxDate = dayjs.utc().startOf('day');
   const minDate = maxDate.subtract(7, 'day');
   const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dayjs.utc().startOf('day'));
@@ -48,43 +31,16 @@ function StockFilesPageContent() {
   const dateLabel = useMemo(() => getUtcDateString(selectedDate), [selectedDate]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography
-        variant="h4"
-        component="h1"
-        sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' } }}
-      >
-        {es.stockFiles.title}
-      </Typography>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{es.stockFiles.title}</h1>
 
-      <DatePicker
-        label={es.stockFiles.dateLabel}
-        value={selectedDate}
-        minDate={minDate}
-        maxDate={maxDate}
-        timezone="UTC"
-        onChange={(value) => {
-          if (value) {
-            setSelectedDate(value.utc().startOf('day'));
-          }
-        }}
-        slotProps={{ textField: { size: 'small', fullWidth: true, sx: { maxWidth: { sm: 280 } } } }}
-      />
+      <div className="flex flex-col gap-1.5">
+        <Label>{es.stockFiles.dateLabel}</Label>
+        <DatePicker value={selectedDate} minDate={minDate} maxDate={maxDate} onChange={setSelectedDate} />
+      </div>
 
-      <StockFilesTable
-        files={data?.files ?? []}
-        date={dateLabel}
-        error={error}
-        isLoading={isLoading}
-      />
-    </Box>
+      <StockFilesTable files={data?.files ?? []} date={dateLabel} error={error} isLoading={isLoading} />
+    </div>
   );
 }
-
-export function StockFilesPage() {
-  return (
-    <StockFilesDateProvider>
-      <StockFilesPageContent />
-    </StockFilesDateProvider>
-  );
-}
+</content>

@@ -1,11 +1,5 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
-import CardContent from '@mui/material/CardContent';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { LabelWithTooltip } from '../../../components/label-with-tooltip';
 import { formatDateTime } from '../../../lib/format';
 import { es } from '../../../i18n/es';
@@ -32,73 +26,46 @@ export function StockChangesMobileList({
   onDownloadError,
 }: StockChangesMobileListProps) {
   if (items.length === 0) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        {es.stockChanges.noChanges}
-      </Typography>
-    );
+    return <p className="text-sm text-muted-foreground">{es.stockChanges.noChanges}</p>;
   }
 
   return (
-    <Stack spacing={1.5}>
+    <div className="flex flex-col gap-2">
       {items.map((item) => (
-        <Card key={item.pk} variant="outlined">
-          <CardActionArea onClick={() => onRowClick(item.currentSyncKey)}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: 1,
-                }}
-              >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    {formatDateTime(item.syncedAt)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    <LabelWithTooltip
-                      label={`${es.stockChanges.changed}:`}
-                      tooltip={es.tooltips.changed}
-                      variant="body2"
-                    />{' '}
-                    {item.changedCount} ·{' '}
-                    <LabelWithTooltip
-                      label={`${es.stockChanges.patched}:`}
-                      tooltip={es.tooltips.patched}
-                      variant="body2"
-                    />{' '}
-                    {item.tiendanubeSync?.patchedCount ?? '—'}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.5 }}
-                  >
-                    {es.stockChanges.created(formatDateTime(item.createdAt))}
-                  </Typography>
-                </Box>
-                <Box onClick={(event) => event.stopPropagation()}>
-                  <StockFileDownloadButton
-                    syncKey={item.currentSyncKey}
-                    onError={onDownloadError}
-                  />
-                </Box>
-              </Box>
-            </CardContent>
-          </CardActionArea>
+        <Card key={item.pk}>
+          <CardContent className="flex items-start justify-between gap-2 py-3">
+            <button
+              type="button"
+              onClick={() => onRowClick(item.currentSyncKey)}
+              className="min-w-0 flex-1 text-left"
+            >
+              <p className="text-sm font-medium">{formatDateTime(item.syncedAt)}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                <LabelWithTooltip label={`${es.stockChanges.changed}:`} tooltip={es.tooltips.changed} />{' '}
+                {item.changedCount} ·{' '}
+                <LabelWithTooltip label={`${es.stockChanges.patched}:`} tooltip={es.tooltips.patched} />{' '}
+                {item.tiendanubeSync?.patchedCount ?? '—'}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {es.stockChanges.created(formatDateTime(item.createdAt))}
+              </p>
+            </button>
+            <div onClick={(event) => event.stopPropagation()}>
+              <StockFileDownloadButton syncKey={item.currentSyncKey} onError={onDownloadError} />
+            </div>
+          </CardContent>
         </Card>
       ))}
 
-      <Box sx={{ display: 'flex', gap: 1, pt: 1 }}>
-        <Button variant="outlined" disabled={!hasPrevious} onClick={onPrevious} fullWidth>
+      <div className="flex gap-2 pt-1">
+        <Button variant="outline" className="flex-1" disabled={!hasPrevious} onClick={onPrevious}>
           {es.stockChanges.previousPage}
         </Button>
-        <Button variant="outlined" disabled={!hasNext} onClick={onNext} fullWidth>
+        <Button variant="outline" className="flex-1" disabled={!hasNext} onClick={onNext}>
           {es.stockChanges.nextPage}
         </Button>
-      </Box>
-    </Stack>
+      </div>
+    </div>
   );
 }
+</content>

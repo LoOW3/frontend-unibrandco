@@ -1,14 +1,9 @@
-import RefreshIcon from '@mui/icons-material/Refresh';
-import SyncIcon from '@mui/icons-material/Sync';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
+import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { triggerManualSync } from '../../lib/admin-api-client';
 import { LastSyncMetrics } from './components/last-sync-metrics';
 import { StockChangeDetailDialog } from './components/stock-change-detail-dialog';
@@ -17,121 +12,71 @@ import { useAdminDashboard } from './hooks/use-admin-dashboard';
 import { useAuthenticatedFetch } from './hooks/use-authenticated-fetch';
 import { useStockChanges } from './hooks/use-stock-changes';
 import { TiendanubeBrandText } from '../../components/tiendanube-brand';
-import { useIsMobile } from '../../hooks/use-is-mobile';
 import { es } from '../../i18n/es';
 
 export function AdminDashboardPage() {
   const dashboard = useAdminDashboard();
   const stockChanges = useStockChanges();
-  const isMobile = useIsMobile();
   const { withAuth } = useAuthenticatedFetch();
   const [selectedSyncKey, setSelectedSyncKey] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const isReloading = dashboard.isLoading || stockChanges.isLoading;
+
   const handleReload = (): void => {
     dashboard.reload();
     stockChanges.reload();
   };
 
-  const isReloading = dashboard.isLoading || stockChanges.isLoading;
-
   const handleManualSync = async (): Promise<void> => {
     setIsSyncing(true);
     setSyncMessage(null);
     setSyncError(null);
-
     try {
       const result = await withAuth((idToken) => triggerManualSync(idToken));
       setSyncMessage(es.dashboard.syncStarted(result.s3Key, result.itemCount));
       dashboard.reload();
       stockChanges.reload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : es.dashboard.manualSyncFailed;
-      setSyncError(message);
+      setSyncError(error instanceof Error ? error.message : es.dashboard.manualSyncFailed);
     } finally {
       setIsSyncing(false);
     }
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-        }}
-      >
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2.125rem' }, minWidth: 0 }}
-        >
-          {es.dashboard.title}
-        </Typography>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            flexShrink: 0,
-            gap: 1,
-          }}
-        >
-          <IconButton
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="min-w-0 text-2xl font-bold tracking-tight md:text-3xl">{es.dashboard.title}</h1>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label={es.dashboard.reload}
             onClick={handleReload}
             disabled={isReloading || isSyncing}
           >
-            {isReloading ? <CircularProgress size={20} /> : <RefreshIcon />}
-          </IconButton>
-          {isMobile ? (
-            <Tooltip title={es.dashboard.manualSync}>
-              <span>
-                <IconButton
-                  aria-label={es.dashboard.manualSync}
-                  color="primary"
-                  disabled={isSyncing}
-                  onClick={() => void handleManualSync()}
-                  sx={{
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '&:hover': { bgcolor: 'primary.dark' },
-                    '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
-                  }}
-                >
-                  {isSyncing ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
-                </IconButton>
-              </span>
-            </Tooltip>
-          ) : (
-            <Button
-              variant="contained"
-              startIcon={isSyncing ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
-              disabled={isSyncing}
-              onClick={() => void handleManualSync()}
-            >
+            {isReloading ? <Spinner /> : <RefreshCw />}
+          </Button>
+          <Button disabled={isSyncing} onClick={() => void handleManualSync()}>
+            {isSyncing ? <Spinner className="text-current" /> : <RefreshCw />}
+            <span className="hidden sm:inline">
               {isSyncing ? es.dashboard.syncing : es.dashboard.manualSync}
-            </Button>
-          )}
-        </Box>
-      </Box>
+            </span>
+          </Button>
+        </div>
+      </div>
 
       {syncMessage ? (
-        <Alert severity="success">
+        <Alert variant="success">
           <TiendanubeBrandText text={syncMessage} />
         </Alert>
       ) : null}
-      {syncError ? <Alert severity="error">{syncError}</Alert> : null}
+      {syncError ? <Alert variant="destructive">{syncError}</Alert> : null}
 
-      <LastSyncMetrics
-        data={dashboard.data}
-        error={dashboard.error}
-        isLoading={dashboard.isLoading}
-      />
+      <LastSyncMetrics data={dashboard.data} error={dashboard.error} isLoading={dashboard.isLoading} />
 
       <StockChangesTable
         items={stockChanges.data?.items ?? []}
@@ -149,6 +94,7 @@ export function AdminDashboardPage() {
         open={Boolean(selectedSyncKey)}
         onClose={() => setSelectedSyncKey(null)}
       />
-    </Box>
+    </div>
   );
 }
+</content>
