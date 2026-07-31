@@ -6,6 +6,14 @@ import {
   type AdminUser,
   type ApiErrorResponse,
   type AvatarUploadUrlResponse,
+  type GetGoldSummaryParams,
+  type GoldSummary,
+  type ListGoldClientesParams,
+  type ListGoldFletesParams,
+  type ListGoldVentasParams,
+  type PaginatedGoldClientesResponse,
+  type PaginatedGoldFletesResponse,
+  type PaginatedGoldVentasResponse,
   type UserRole,
   type UsersListResponse,
   type ManualSyncManifest,
@@ -284,4 +292,84 @@ export async function uploadAvatar(idToken: string, file: File): Promise<string>
 
 export function isAdminApiError(error: unknown): error is AdminApiError {
   return error instanceof AdminApiError;
+}
+
+// ---------------------------------------------------------------------------
+// Gold data (dashboard) — GET /admin/gold/* (backend to be implemented).
+// ---------------------------------------------------------------------------
+
+export async function getGoldSummary(
+  idToken: string,
+  params?: GetGoldSummaryParams,
+): Promise<GoldSummary> {
+  const searchParams = new URLSearchParams();
+  if (params?.mes) {
+    searchParams.set('mes', params.mes);
+  }
+  if (params?.canal) {
+    searchParams.set('canal', params.canal);
+  }
+  const query = searchParams.toString();
+  const path = query ? `/admin/gold/summary?${query}` : '/admin/gold/summary';
+  return adminFetch<GoldSummary>(path, idToken);
+}
+
+export async function listGoldVentas(
+  idToken: string,
+  params?: ListGoldVentasParams,
+): Promise<PaginatedGoldVentasResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params?.cursor) {
+    searchParams.set('cursor', params.cursor);
+  }
+  if (params?.canal) {
+    searchParams.set('canal', params.canal);
+  }
+  if (params?.mes) {
+    searchParams.set('mes', params.mes);
+  }
+  if (params?.marca) {
+    searchParams.set('marca', params.marca);
+  }
+  const query = searchParams.toString();
+  const path = query ? `/admin/gold/ventas?${query}` : '/admin/gold/ventas';
+  return adminFetch<PaginatedGoldVentasResponse>(path, idToken);
+}
+
+export async function listGoldClientes(
+  idToken: string,
+  params?: ListGoldClientesParams,
+): Promise<PaginatedGoldClientesResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params?.cursor) {
+    searchParams.set('cursor', params.cursor);
+  }
+  if (params?.categoria) {
+    searchParams.set('categoria', params.categoria);
+  }
+  const query = searchParams.toString();
+  const path = query ? `/admin/gold/clientes?${query}` : '/admin/gold/clientes';
+  return adminFetch<PaginatedGoldClientesResponse>(path, idToken);
+}
+
+export async function listGoldFletes(
+  idToken: string,
+  params?: ListGoldFletesParams,
+): Promise<PaginatedGoldFletesResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params?.cursor) {
+    searchParams.set('cursor', params.cursor);
+  }
+  const query = searchParams.toString();
+  const path = query ? `/admin/gold/fletes?${query}` : '/admin/gold/fletes';
+  return adminFetch<PaginatedGoldFletesResponse>(path, idToken);
 }

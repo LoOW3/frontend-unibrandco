@@ -11,6 +11,7 @@ import {
   ADMIN_PEDIDOS_PATH,
   ADMIN_PROFILE_PATH,
   ADMIN_STOCK_FILES_PATH,
+  ADMIN_STOCK_SYNC_PATH,
   ADMIN_USERS_PATH,
 } from '../layouts/admin-nav-items';
 
@@ -20,9 +21,14 @@ const LoginPage = lazy(() =>
 const AdminLayout = lazy(() =>
   import('../layouts/admin-layout').then((module) => ({ default: module.AdminLayout })),
 );
-const AdminDashboardPage = lazy(() =>
-  import('../features/admin/admin-dashboard-page').then((module) => ({
-    default: module.AdminDashboardPage,
+const DashboardPage = lazy(() =>
+  import('../features/admin/dashboard-page').then((module) => ({
+    default: module.DashboardPage,
+  })),
+);
+const StockSyncPage = lazy(() =>
+  import('../features/admin/stock-sync-page').then((module) => ({
+    default: module.StockSyncPage,
   })),
 );
 const StockFilesPage = lazy(() =>
@@ -68,7 +74,8 @@ export function AppRouter() {
               </CurrentUserProvider>
             }
           >
-            <Route path={ADMIN_DASHBOARD_PATH} element={<AdminDashboardPage />} />
+            <Route path={ADMIN_DASHBOARD_PATH} element={<DashboardPage />} />
+            <Route path={ADMIN_STOCK_SYNC_PATH} element={<StockSyncPage />} />
             <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />
             <Route path={ADMIN_MANUAL_SYNC_PATH} element={<ManualSyncPage />} />

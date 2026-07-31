@@ -14,7 +14,7 @@ import { useStockChanges } from './hooks/use-stock-changes';
 import { TiendanubeBrandText } from '../../components/tiendanube-brand';
 import { es } from '../../i18n/es';
 
-export function AdminDashboardPage() {
+export function StockSyncPage() {
   const dashboard = useAdminDashboard();
   const stockChanges = useStockChanges();
   const { withAuth } = useAuthenticatedFetch();
