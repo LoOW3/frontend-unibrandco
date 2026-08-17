@@ -85,8 +85,8 @@ export function GoldClientesTable({ items, error, isLoading, hasNext, hasPreviou
                 <Badge variant={categoriaVariant(cliente.categoria)}>{cliente.categoria}</Badge>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {es.gold.montoTotal3m}: {formatCurrency(cliente.montoTotal3m)} · {es.gold.mesesConCompra3m}:{' '}
-                {formatNumber(cliente.mesesConCompra3m)}
+                {es.gold.montoTotal}: {formatCurrency(cliente.montoTotal)} · {es.gold.cantidadTickets}:{' '}
+                {formatNumber(cliente.cantidadTickets)}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {cliente.provincia ?? '—'} · {facturacion(cliente)}
@@ -107,9 +107,9 @@ export function GoldClientesTable({ items, error, isLoading, hasNext, hasPreviou
             <TableHead>{es.gold.nombre}</TableHead>
             <TableHead>{es.gold.provincia}</TableHead>
             <TableHead>{es.gold.categoria}</TableHead>
-            <TableHead className="text-right">{es.gold.promedioMensual3m}</TableHead>
-            <TableHead className="text-right">{es.gold.montoTotal3m}</TableHead>
-            <TableHead className="text-right">{es.gold.mesesConCompra3m}</TableHead>
+            <TableHead className="text-right">{es.gold.ticketPromedio}</TableHead>
+            <TableHead className="text-right">{es.gold.montoTotal}</TableHead>
+            <TableHead className="text-right">{es.gold.cantidadTickets}</TableHead>
             <TableHead>{es.gold.facturado}</TableHead>
           </TableRow>
         </TableHeader>
@@ -121,9 +121,9 @@ export function GoldClientesTable({ items, error, isLoading, hasNext, hasPreviou
               <TableCell>
                 <Badge variant={categoriaVariant(cliente.categoria)}>{cliente.categoria}</Badge>
               </TableCell>
-              <TableCell className="text-right tabular-nums">{formatCurrency(cliente.promedioMensual3m)}</TableCell>
-              <TableCell className="text-right tabular-nums">{formatCurrency(cliente.montoTotal3m)}</TableCell>
-              <TableCell className="text-right tabular-nums">{formatNumber(cliente.mesesConCompra3m)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatCurrency(cliente.ticketPromedio)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatCurrency(cliente.montoTotal)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatNumber(cliente.cantidadTickets)}</TableCell>
               <TableCell className="whitespace-nowrap">{facturacion(cliente)}</TableCell>
             </TableRow>
           ))}

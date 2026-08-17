@@ -13,6 +13,12 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
 
 const numberFormatter = new Intl.NumberFormat('es-AR');
 
+const percentFormatter = new Intl.NumberFormat('es-AR', {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 /** ARS currency, no decimals (e.g. "$ 1.234"). */
 export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
@@ -21,6 +27,11 @@ export function formatCurrency(value: number): string {
 /** Localized integer/decimal grouping (e.g. "1.234"). */
 export function formatNumber(value: number): string {
   return numberFormatter.format(value);
+}
+
+/** Percentage with 1 decimal (e.g. "34,6 %"). Espera un valor 0-1, no 0-100. */
+export function formatPercent(value: number): string {
+  return percentFormatter.format(value);
 }
 
 export function formatFileSize(bytes: number): string {

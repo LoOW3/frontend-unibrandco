@@ -8,6 +8,8 @@ import {
   type AvatarUploadUrlResponse,
   type GetGoldSummaryParams,
   type GoldSummary,
+  type GetGoldVentasMayoristasParams,
+  type GoldVentasMayoristas,
   type ListGoldClientesParams,
   type ListGoldFletesParams,
   type ListGoldVentasParams,
@@ -312,6 +314,25 @@ export async function getGoldSummary(
   const query = searchParams.toString();
   const path = query ? `/admin/gold/summary?${query}` : '/admin/gold/summary';
   return adminFetch<GoldSummary>(path, idToken);
+}
+
+export async function getGoldVentasMayoristas(
+  idToken: string,
+  params?: GetGoldVentasMayoristasParams,
+): Promise<GoldVentasMayoristas> {
+  const searchParams = new URLSearchParams();
+  if (params?.vendedor) {
+    searchParams.set('vendedor', params.vendedor);
+  }
+  if (params?.empresa) {
+    searchParams.set('empresa', params.empresa);
+  }
+  if (params?.mes) {
+    searchParams.set('mes', params.mes);
+  }
+  const query = searchParams.toString();
+  const path = query ? `/admin/gold/ventas-mayoristas?${query}` : '/admin/gold/ventas-mayoristas';
+  return adminFetch<GoldVentasMayoristas>(path, idToken);
 }
 
 export async function listGoldVentas(
