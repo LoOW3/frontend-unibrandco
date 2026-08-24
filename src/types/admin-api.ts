@@ -329,9 +329,9 @@ export interface GoldClienteClasificado {
   localidad: string | null;
   zona: string | null;
   email: string | null;
-  ticketPromedio: number;
-  cantidadTickets: number;
-  montoTotal: number;
+  promedioMensual3m: number;
+  mesesConCompra3m: number;
+  montoTotal3m: number;
   compraFacturado: boolean;
   compraNoFacturado: boolean;
   categoria: ClienteCategoria | string;
@@ -387,46 +387,4 @@ export interface GoldSummary {
 export interface GetGoldSummaryParams {
   mes?: string;
   canal?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Ventas Mayoristas — /admin/gold/ventas-mayoristas
-// Siempre filtrado del lado del backend a canal='Mayorista' y excluye el
-// vendedor 'AGENCIA' (no es un vendedor de planta). Ver diccionario de
-// métricas para el detalle de cada cálculo.
-// ---------------------------------------------------------------------------
-
-export interface GoldMargenProveedor {
-  label: string;
-  margenPct: number;
-  unidades: number;
-}
-
-export interface GoldFacturacionDiaVendedor {
-  fecha: string;
-  vendedor: string;
-  total: number;
-}
-
-export interface GoldVentasMayoristas {
-  facturacionNeta: number;
-  costoMercaderia: number;
-  unidades: number;
-  margenTotal: number;
-  margenAjustado: number;
-  clientesConCompra: number;
-  ticketPromedio: number;
-  pctRentabilidadAjustada: number;
-  pctFacturacionTop10Clientes: number;
-  fleteTotalReal: number;
-  fleteEstimadoFiltrado: number;
-  facturacionPorProveedor: GoldNamedTotal[];
-  margenPctPorProveedor: GoldMargenProveedor[];
-  facturacionPorDiaVendedor: GoldFacturacionDiaVendedor[];
-}
-
-export interface GetGoldVentasMayoristasParams {
-  vendedor?: string;
-  empresa?: string;
-  mes?: string;
 }
