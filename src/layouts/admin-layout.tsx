@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/features/auth/use-current-user';
 import { useTheme } from '@/features/theme/use-theme';
 import { cn } from '@/lib/cn';
 import { es } from '@/i18n/es';
-import { ADMIN_DASHBOARD_PATH, ADMIN_PROFILE_PATH, ADMIN_USERS_PATH, adminNavItems } from './admin-nav-items';
+import { ADMIN_PROFILE_PATH, ADMIN_STOCK_SYNC_PATH, ADMIN_USERS_PATH, adminNavItems } from './admin-nav-items';
 
 const ITEM_BASE = 'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors';
 const ITEM_INACTIVE = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground';
@@ -122,7 +122,7 @@ export function AdminLayout() {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="flex h-16 items-center px-4">
-          <NavLink to={ADMIN_DASHBOARD_PATH} className="flex items-center overflow-hidden">
+          <NavLink to={ADMIN_STOCK_SYNC_PATH} className="flex items-center overflow-hidden">
             <Logo />
           </NavLink>
         </div>
@@ -158,7 +158,7 @@ export function AdminLayout() {
             </SheetContent>
           </Sheet>
 
-          <NavLink to={ADMIN_DASHBOARD_PATH} className="flex flex-1 items-center">
+          <NavLink to={ADMIN_STOCK_SYNC_PATH} className="flex flex-1 items-center">
             <Logo />
           </NavLink>
 
