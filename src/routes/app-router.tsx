@@ -6,14 +6,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { CurrentUserProvider } from '../features/auth/current-user-provider';
 import { ProtectedRoute } from '../features/auth/protected-route';
 import {
-  ADMIN_DASHBOARD_PATH,
   ADMIN_MANUAL_SYNC_PATH,
   ADMIN_PEDIDOS_PATH,
   ADMIN_PROFILE_PATH,
   ADMIN_STOCK_FILES_PATH,
   ADMIN_STOCK_SYNC_PATH,
   ADMIN_USERS_PATH,
-  ADMIN_VENTAS_PATH,
 } from '../layouts/admin-nav-items';
 
 const LoginPage = lazy(() =>
@@ -21,16 +19,6 @@ const LoginPage = lazy(() =>
 );
 const AdminLayout = lazy(() =>
   import('../layouts/admin-layout').then((module) => ({ default: module.AdminLayout })),
-);
-const DashboardPage = lazy(() =>
-  import('../features/admin/dashboard-page').then((module) => ({
-    default: module.DashboardPage,
-  })),
-);
-const VentasPage = lazy(() =>
-  import('../features/ventas/ventas-page').then((module) => ({
-    default: module.VentasPage,
-  })),
 );
 const StockSyncPage = lazy(() =>
   import('../features/admin/stock-sync-page').then((module) => ({
@@ -80,8 +68,6 @@ export function AppRouter() {
               </CurrentUserProvider>
             }
           >
-            <Route path={ADMIN_DASHBOARD_PATH} element={<DashboardPage />} />
-            <Route path={ADMIN_VENTAS_PATH} element={<VentasPage />} />
             <Route path={ADMIN_STOCK_SYNC_PATH} element={<StockSyncPage />} />
             <Route path={ADMIN_PEDIDOS_PATH} element={<PatagoniaPedidosPage />} />
             <Route path={ADMIN_STOCK_FILES_PATH} element={<StockFilesPage />} />
@@ -90,13 +76,13 @@ export function AppRouter() {
             <Route path={ADMIN_USERS_PATH} element={<UsersPage />} />
           </Route>
         </Route>
-        <Route path="/admins" element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />
+        <Route path="/admins" element={<Navigate to={ADMIN_STOCK_SYNC_PATH} replace />} />
         <Route
           path="/admins/stock-files"
           element={<Navigate to={ADMIN_STOCK_FILES_PATH} replace />}
         />
-        <Route path="/" element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />
-        <Route path="*" element={<Navigate to={ADMIN_DASHBOARD_PATH} replace />} />
+        <Route path="/" element={<Navigate to={ADMIN_STOCK_SYNC_PATH} replace />} />
+        <Route path="*" element={<Navigate to={ADMIN_STOCK_SYNC_PATH} replace />} />
       </Routes>
     </Suspense>
   );
